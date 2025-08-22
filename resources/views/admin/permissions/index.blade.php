@@ -12,7 +12,7 @@
                 </ol>
             </div>
             <div class="col-sm-6">
-                {{-- <a href="{{ route('admin.permissions.create') }}" class="btn btn-primary float-end">Add New Permissions</a> --}}
+                <a href="{{ route('admin.permissions.create') }}" class="btn btn-primary float-end">Add New Permissions</a>
             </div>
         </div>
     </div>
@@ -22,33 +22,32 @@
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-body">
-
-                    <form class='form theme-form' action="{{ route('admin.permissions.store') }}" method="POST">
-                        @csrf
-
-                        <div class="row">
-                            <div class="col">
-                                <label class="form-label">Add New Permissions</label>
-                                <input class='form-control' type="text" name="permission_name">
-                                <button type="submit" class="btn btn-primary float-end mt-3">Save</button>
-                            </div>
-                        </div>
-                    </form>
-
-
-                    <div class="table-responsive mt-3">
+                    <div class="mt-3 table-responsive">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
                                     <th scope="col">Name</th>
+                                    <th scope="col" class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($permissions as $key => $item)
+                                @foreach ($permissions as $item)
                                 <tr>
-                                    <td>{{ $key + 1 }}</td>
+                                    <td>{{ $item->id }}</td>
                                     <td>{{ $item->name }}</td>
+                                    <td class="text-center">
+                                        <a href="{{ route('admin.permissions.edit', $item->id) }}" class="btn btn-primary">
+                                            <i class="fa fa-edit"></i> Edit
+                                        </a>
+
+                                        <form action="{{ route('admin.permissions.destroy', $item->id) }}" method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this permission?');" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button>
+                                        </form>
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>

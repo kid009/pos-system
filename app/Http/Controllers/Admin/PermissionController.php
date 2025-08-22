@@ -25,7 +25,7 @@ class PermissionController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.permissions.create');
     }
 
     /**
@@ -33,13 +33,13 @@ class PermissionController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'permission_name' => 'required',
+        $validated = $request->validate([
+            'permission_name' => 'required|string|min:3|unique:permissions,name'
         ]);
 
-        Permission::create(['name' => $request->permission_name]);
+        Permission::create($validated);
 
-        return redirect()->back();
+        return redirect()->route('admin.permissions.index')->with('success', 'Permission created successfully.');
     }
 
     /**
@@ -55,7 +55,11 @@ class PermissionController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $permission = Permission::find($id);
+
+        return view('admin.permissions.edit', [
+            'permission' => $permission,
+        ]);
     }
 
     /**
@@ -63,7 +67,15 @@ class PermissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $permission = Permission::find($id);
+
+        $validated = $request->validate([
+            'permission_name' => 'required|string|min:3|unique:permissions,name,' . $permission->id
+        ]);
+
+        $permission->update($validated);
+
+        return redirect()->route('admin.permissions.index')->with('success', 'Permission updated successfully.');
     }
 
     /**
@@ -71,6 +83,9 @@ class PermissionController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $permission = Permission::find($id);
+        $permission->delete();
+
+        return redirect()->back()->with('success', 'Permission deleted successfully.');
     }
 }
