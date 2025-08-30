@@ -14,8 +14,7 @@
                 </ol>
             </div>
             <div class="col-sm-6">
-                <a href="{{ route('admin.roles.create') }}" class="btn btn-primary float-end"><i class="fa fa-plus"></i>
-                    Add New Role</a>
+                
             </div>
         </div>
     </div>
@@ -24,8 +23,10 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-header pb-0">
-                    <h5>All Roles</h5>
+                <div class="pb-0 card-header">
+                    <a href="{{ route('admin.roles.create') }}" class="btn btn-primary float-end">
+                        <i class="fa fa-plus"></i> Add New Role
+                    </a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -59,11 +60,12 @@
                                         >
                                             @csrf
                                             @method('DELETE')
-                                            {{-- <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button> --}}
-                                            <button type="button" class="btn btn-danger"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#deleteConfirmationModal"
-                                                    data-form-id="delete-form-{{ $role->id }}">
+                                            <button 
+                                                type="button" 
+                                                class="btn btn-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteConfirmationModal"
+                                                data-form-id="delete-form-{{ $role->id }}">
                                                 <i class="fa fa-trash"></i> Delete
                                             </button>
                                         </form>

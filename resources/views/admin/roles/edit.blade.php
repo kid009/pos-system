@@ -21,9 +21,6 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-header">
-                    <h5>Edit Role: {{ $role->name }}</h5>
-                </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.roles.update', $role) }}">
                         @csrf

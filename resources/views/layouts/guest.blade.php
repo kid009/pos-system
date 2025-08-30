@@ -11,6 +11,8 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
     
     @include('layouts.partials.css')
+
+    <script src="{{ asset('assets/js/jquery-3.5.1.min.js') }}"></script>
 </head>
 
 <body>
@@ -20,7 +22,7 @@
         </div>
     </div>
     <section>
-        <div class="container-fluid p-0">
+        <div class="p-0 container-fluid">
             <div class="row">
                 <div class="col-12">
                     @yield('content')

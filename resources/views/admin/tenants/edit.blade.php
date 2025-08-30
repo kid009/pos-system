@@ -9,7 +9,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.tenants.index') }}">Tenant</a></li>
-                    <li class="breadcrumb-item active">Update</li>
+                    <li class="breadcrumb-item active">Edit</li>
                 </ol>
             </div>
         </div>
@@ -20,9 +20,6 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-header">
-                    <h5>Tenant New User</h5>
-                </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.tenants.update', $tenant) }}">
                         @csrf

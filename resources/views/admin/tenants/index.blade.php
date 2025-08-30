@@ -7,11 +7,13 @@
         <div class="row">
             <div class="col-sm-6">
                 <h3>Tenant Management</h3>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                    <li class="breadcrumb-item active">Tenant</li>
+                </ol>
             </div>
             <div class="col-sm-6">
-                <a href="{{ route('admin.tenants.create') }}" class="btn btn-primary float-end">
-                    <i class="fa fa-plus"></i> Add New Tenant
-                </a>
+                
             </div>
         </div>
     </div>
@@ -21,7 +23,9 @@
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-header">
-                    <h5>All Tenants</h5>
+                    <a href="{{ route('admin.tenants.create') }}" class="btn btn-primary float-end">
+                        <i class="fa fa-plus"></i> Add New Tenant
+                    </a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">

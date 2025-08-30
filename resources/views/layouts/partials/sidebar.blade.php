@@ -45,7 +45,7 @@
                         </ul>
                     </li>
                     <li class="dropdown">
-                        <a class="nav-link menu-title" href="{{ route('admin.users.index') }}">
+                        <a class="nav-link menu-title link-nav" href="{{ route('admin.users.index') }}">
                             <i data-feather="users"></i><span>User Management</span>
                         </a>
                     </li>
@@ -56,8 +56,13 @@
                         </div>
                     </li>
                     <li class="dropdown">
-                        <a class="nav-link menu-title" href="{{ route('admin.tenants.index') }}">
+                        <a class="nav-link menu-title link-nav" href="{{ route('admin.tenants.index') }}">
                             <i data-feather="briefcase"></i><span>Tenant Management</span>
+                        </a>
+                    </li>
+                    <li class="dropdown"> {{-- เพิ่มเมนูนี้ --}}
+                        <a class="nav-link menu-title link-nav" href="{{ route('admin.branches.index') }}">
+                            <i data-feather="git-branch"></i><span>Branch Management</span>
                         </a>
                     </li>
                     @endrole

@@ -1,5 +1,3 @@
-// สร้างไฟล์ใหม่: resources/views/admin/users/edit.blade.php
-
 @extends('layouts.app')
 
 @section('title', 'Edit User')
@@ -13,7 +11,7 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.users.index') }}">Users</a></li>
-                    <li class="breadcrumb-item active">Update</li>
+                    <li class="breadcrumb-item active">Edit</li>
                 </ol>
             </div>
         </div>
@@ -24,9 +22,6 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-header">
-                    <h5>Update New User</h5>
-                </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.users.update', $user) }}">
                         @csrf
@@ -40,3 +35,45 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        var selectedTenantId = '{{ old('tenant_id', $user->tenant_id ?? '') }}';
+        var selectedBranchId = '{{ old('branch_id', $user->branch_id ?? '') }}';
+
+        function fetchBranches(tenantId, targetBranchId) {
+            if (!tenantId) {
+                $('#branch_id').html('<option value="">-- Select Tenant First --</option>');
+                return;
+            }
+            $.ajax({
+                url: '{{ route("admin.get-branches", ["tenantId" => ":tenantId"]) }}'.replace(':tenantId', tenantId),
+                type: 'GET',
+                success: function(data) {
+                    var branchSelect = $('#branch_id');
+                    branchSelect.html('<option value="">-- Select Branch --</option>');
+                    $.each(data, function(key, value) {
+                        var option = $('<option></option>').attr('value', value.id).text(value.name);
+                        if (value.id == targetBranchId) {
+                            option.attr('selected', 'selected');
+                        }
+                        branchSelect.append(option);
+                    });
+                }
+            });
+        }
+
+        // Trigger on page load if a tenant is already selected (for edit page)
+        if (selectedTenantId) {
+            fetchBranches(selectedTenantId, selectedBranchId);
+        }
+
+        // Trigger on tenant change
+        $('#tenant_id').on('change', function() {
+            var tenantId = $(this).val();
+            fetchBranches(tenantId, null);
+        });
+    });
+</script>
+@endpush

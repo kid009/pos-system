@@ -22,11 +22,7 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-header">
-                    <h5>Create New User</h5>
-                </div>
                 <div class="card-body">
-                    {{-- ปุ่ม Submit จะยังไม่ทำงาน เราจะมาทำ Logic ใน Day 6 --}}
                     <form method="POST" action="{{ route('admin.users.store') }}">
                         @csrf
                         
@@ -38,3 +34,48 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        var selectedTenantId = '{{ old('tenant_id', $user->tenant_id ?? '') }}';
+        var selectedBranchId = '{{ old('branch_id', $user->branch_id ?? '') }}';
+
+        function fetchBranches(tenantId, targetBranchId) {
+            if (!tenantId) {
+                $('#branch_id').html('<option value="">-- Select Tenant First --</option>');
+                return;
+            }
+            $.ajax({
+                url: '{{ route("admin.get-branches", ["tenantId" => ":tenantId"]) }}'.replace(':tenantId', tenantId),
+                type: 'GET',
+                success: function(data) {
+                    var branchSelect = $('#branch_id');
+                    branchSelect.html('<option value="">-- Select Branch --</option>');
+                    $.each(data, function(key, value) {
+                        var option = $('<option></option>').attr('value', value.id).text(value.name);
+                        if (value.id == targetBranchId) {
+                            option.attr('selected', 'selected');
+                        }
+                        branchSelect.append(option);
+                    });
+                }
+            });
+        }
+
+        // Trigger on page load if a tenant is already selected (for edit page)
+        if (selectedTenantId) {
+            fetchBranches(selectedTenantId, selectedBranchId);
+        }
+
+        // Trigger on tenant change
+        // $('#tenant_id').change(function(){
+        //     console.log('Tenant changed');
+        // });
+        $('#tenant_id').on('change', function() {
+            var tenantId = $(this).val();
+            fetchBranches(tenantId, null);
+        });
+    });
+</script>
+@endpush

@@ -12,7 +12,7 @@
                 </ol>
             </div>
             <div class="col-sm-6">
-                <a href="{{ route('admin.permissions.create') }}" class="btn btn-primary float-end">Add New Permissions</a>
+                
             </div>
         </div>
     </div>
@@ -21,6 +21,9 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
+                <div class="card-header">
+                    <a href="{{ route('admin.permissions.create') }}" class="btn btn-primary float-end">Add New Permissions</a>
+                </div>
                 <div class="card-body">
                     <div class="mt-3 table-responsive">
                         <table class="table table-hover">
@@ -41,11 +44,22 @@
                                             <i class="fa fa-edit"></i> Edit
                                         </a>
 
-                                        <form action="{{ route('admin.permissions.destroy', $item->id) }}" method="POST"
-                                            onsubmit="return confirm('Are you sure you want to delete this permission?');" style="display:inline;">
+                                        <form 
+                                            action="{{ route('admin.permissions.destroy', $item->id) }}" 
+                                            method="POST"
+                                            id="delete-form-{{ $item->id }}" 
+                                            style="display:inline;">
+                                        
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button>
+                                            <button 
+                                                type="submit" 
+                                                class="btn btn-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteConfirmationModal"
+                                                data-form-id="delete-form-{{ $item->id }}">
+                                                <i class="fa fa-trash"></i> Delete
+                                            </button>
                                         </form>
                                     </td>
                                 </tr>

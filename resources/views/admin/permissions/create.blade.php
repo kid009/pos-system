@@ -21,9 +21,6 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-header">
-                    <h5>Create New Permission</h5>
-                </div>
                 <div class="card-body">
 
                     <form method="POST" action="{{ route('admin.permissions.store') }}">
