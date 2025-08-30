@@ -1,5 +1,5 @@
 <header class="main-nav">
-    <div class="sidebar-user text-center">
+    <div class="text-center sidebar-user">
         <a class="setting-primary" href="#"><i data-feather="settings"></i></a>
         <img class="img-90 rounded-circle" src="{{ asset('assets/images/dashboard/1.png') }}" alt="">
         <a href="#">
@@ -47,6 +47,17 @@
                     <li class="dropdown">
                         <a class="nav-link menu-title" href="{{ route('admin.users.index') }}">
                             <i data-feather="users"></i><span>User Management</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-main-title">
+                        <div>
+                            <h6>Store Management</h6>
+                        </div>
+                    </li>
+                    <li class="dropdown">
+                        <a class="nav-link menu-title" href="{{ route('admin.tenants.index') }}">
+                            <i data-feather="briefcase"></i><span>Tenant Management</span>
                         </a>
                     </li>
                     @endrole
