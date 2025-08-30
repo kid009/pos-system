@@ -12,8 +12,8 @@
                 </ol>
             </div>
             <div class="col-sm-6">
-                {{-- Optional: Add a button to create new user --}}
-                {{-- <a href="{{ route('users.create') }}" class="btn btn-primary float-end">Add New User</a> --}}
+                {{-- เพิ่มปุ่มนี้ --}}
+                <a href="{{ route('admin.users.create') }}" class="btn btn-primary float-end"><i class="fa fa-plus"></i> Add New User</a>
             </div>
         </div>
     </div>
@@ -50,7 +50,7 @@
                                     <td>{{ $user->tenant->name ?? 'N/A' }}</td>
                                     <td>
                                         {{-- Action buttons will go here --}}
-                                        <a href="#" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Edit</a>
+                                        <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-primary"><i class="fa fa-edit"></i> Edit</a>
                                     </td>
                                 </tr>
                                 @endforeach

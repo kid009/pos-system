@@ -33,11 +33,11 @@ class PermissionController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'permission_name' => 'required|string|min:3|unique:permissions,name'
         ]);
 
-        Permission::create($validated);
+        Permission::create(['name' => $request->permission_name]);
 
         return redirect()->route('admin.permissions.index')->with('success', 'Permission created successfully.');
     }
@@ -69,11 +69,11 @@ class PermissionController extends Controller
     {
         $permission = Permission::find($id);
 
-        $validated = $request->validate([
+        $request->validate([
             'permission_name' => 'required|string|min:3|unique:permissions,name,' . $permission->id
         ]);
 
-        $permission->update($validated);
+        $permission->update(['name' => $request->permission_name]);
 
         return redirect()->route('admin.permissions.index')->with('success', 'Permission updated successfully.');
     }
