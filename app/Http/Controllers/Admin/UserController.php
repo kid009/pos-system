@@ -29,7 +29,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        $roles = Role::all();
+        $roles = Role::select('name')->get();
 
         return view('admin.users.create', [
             'roles' => $roles,
@@ -89,6 +89,31 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         $user = User::find($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed', // nullable คือไม่บังคับกรอก
+            'roles' => 'required|array'
+        ]);
+
+        // อัปเดตข้อมูลพื้นฐาน
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        // ตรวจสอบว่ามีการกรอกรหัสผ่านใหม่เข้ามาหรือไม่
+        if ($request->filled('password')) 
+        {
+            $user->password = Hash::make($request->password);
+            $user->save();
+        }
+
+        // อัปเดต Role
+        $user->syncRoles($request->roles);
+
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
     /**
@@ -97,5 +122,21 @@ class UserController extends Controller
     public function destroy(string $id)
     {
         $user = User::find($id);
+
+        // ป้องกันการลบ Super Admin (สมมติว่า ID 1 คือ Super Admin หลัก)
+        if ($user->id === 1 || $user->hasRole('super-admin')) 
+        {
+            return back()->with('error', 'Cannot delete Super Admin user.');
+        }
+
+        // (แนะนำ) ป้องกันไม่ให้ User ลบตัวเอง
+        if (auth()->id() === $user->id) 
+        {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'User deleted successfully.');
     }
 }

@@ -22,7 +22,7 @@
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-header pb-0">
+                <div class="pb-0 card-header">
                     <h5>All Users</h5>
                 </div>
                 <div class="card-body">
@@ -51,6 +51,14 @@
                                     <td>
                                         {{-- Action buttons will go here --}}
                                         <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-primary"><i class="fa fa-edit"></i> Edit</a>
+
+                                        {{-- delete --}}
+                                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this user?');" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button>
+                                        </form>
                                     </td>
                                 </tr>
                                 @endforeach
