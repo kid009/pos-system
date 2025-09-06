@@ -23,7 +23,7 @@
         <div class="col-sm-12">
             <div class="card">
                 <div class="pb-0 card-header">
-                    <a href="{{ route('admin.users.create') }}" class="btn btn-primary float-end"><i class="fa fa-plus"></i> Add New User</a>
+                    <a href="{{ route('admin.users.create') }}" class="btn btn-primary float-end"><i class="fa fa-plus"></i> Add New</a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">

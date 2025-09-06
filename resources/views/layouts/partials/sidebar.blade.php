@@ -67,6 +67,24 @@
                     </li>
                     @endrole
 
+                    @hasanyrole('super-admin|branch-manager')
+                    <li class="sidebar-main-title">
+                        <div>
+                            <h6>Store Operations</h6>
+                        </div>
+                    </li>
+                    <li class="dropdown">
+                        <a class="nav-link menu-title" href="javascript:void(0)">
+                            <i data-feather="package"></i><span>Product Catalog</span>
+                        </a>
+                        <ul class="nav-submenu menu-content">
+                            <li><a href="{{ route('store.product-main-categories.index') }}">Main Categories</a></li>
+                            <li><a href="{{ route('store.product-categories.index') }}">Categories</a></li>
+                            <li><a href="{{ route('store.products.index') }}">Products</a></li>
+                        </ul>
+                    </li>
+                    @endhasanyrole
+
                 </ul>
             </div>
             <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>

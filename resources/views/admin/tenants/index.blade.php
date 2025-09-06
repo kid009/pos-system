@@ -24,7 +24,7 @@
             <div class="card">
                 <div class="card-header">
                     <a href="{{ route('admin.tenants.create') }}" class="btn btn-primary float-end">
-                        <i class="fa fa-plus"></i> Add New Tenant
+                        <i class="fa fa-plus"></i> Add New
                     </a>
                 </div>
                 <div class="card-body">

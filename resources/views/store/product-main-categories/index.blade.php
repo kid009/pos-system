@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Role Management')
+@section('title', 'Main Categories')
 
 @section('content')
 <div class="container-fluid">
     <div class="page-header">
         <div class="row">
             <div class="col-sm-6">
-                <h3>Role Management</h3>
+                <h3>Main Categories</h3>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                    <li class="breadcrumb-item active">Roles</li>
+                    <li class="breadcrumb-item active">Main Categories</li>
                 </ol>
             </div>
             <div class="col-sm-6">
@@ -24,8 +24,8 @@
         <div class="col-sm-12">
             <div class="card">
                 <div class="pb-0 card-header">
-                    <a href="{{ route('admin.roles.create') }}" class="btn btn-primary float-end">
-                        <i class="fa fa-plus"></i> Add New
+                    <a href="{{ route('store.product-main-categories.create') }}" class="btn btn-primary float-end">
+                        <i class="fa fa-plus"></i> Add New 
                     </a>
                 </div>
                 <div class="card-body">
@@ -34,28 +34,26 @@
                             <thead>
                                 <tr>
                                     <th scope="col">#</th>
+                                    <th scope="col" class="text-center">Tenant</th>
                                     <th scope="col">Name</th>
-                                    <th scope="col" class="text-center">Permissions Count</th>
                                     <th scope="col" class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($roles as $role)
+                                @forelse ($mainCategories as $item)
                                 <tr>
-                                    <th scope="row">{{ $role->id }}</th>
-                                    <td>{{ $role->name }}</td>
+                                    <th scope="row">{{ $item->id }}</th>
+                                    <td>{{ $item->tenant->name }}</td>
+                                    <td>{{ $item->name }}</td>
                                     <td class="text-center">
-                                        <span class="badge badge-primary">{{ $role->permissions_count }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-primary">
+                                        <a href="{{ route('store.product-main-categories.edit', $item->id) }}" class="btn btn-primary">
                                             <i class="fa fa-edit"></i> Edit
                                         </a>
 
                                         <form 
-                                            action="{{ route('admin.roles.destroy', $role) }}" 
+                                            action="{{ route('store.product-main-categories.destroy', $item->id) }}" 
                                             method="POST" 
-                                            id="delete-form-{{ $role->id }}" 
+                                            id="delete-form-{{ $item->id }}" 
                                             style="display:inline;"
                                         >
                                             @csrf
@@ -65,7 +63,7 @@
                                                 class="btn btn-danger"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#deleteConfirmationModal"
-                                                data-form-id="delete-form-{{ $role->id }}">
+                                                data-form-id="delete-form-{{ $item->id }}">
                                                 <i class="fa fa-trash"></i> Delete
                                             </button>
                                         </form>
@@ -73,14 +71,14 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="text-center">No roles found.</td>
+                                    <td colspan="4" class="text-center">No Items found.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
                     <div class="mt-3">
-                        {{ $roles->links() }}
+                        {{ $mainCategories->links() }}
                     </div>
                 </div>
             </div>

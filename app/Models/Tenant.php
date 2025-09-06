@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\ProductCategory;
+use App\Models\ProductMainCategory;
 use Illuminate\Database\Eloquent\Model;
 
 class Tenant extends Model
@@ -19,5 +21,15 @@ class Tenant extends Model
     public function branches()
     {
         return $this->hasMany(Branch::class);
+    }
+
+    public function mainCategory()
+    {
+        return $this->hasMany(ProductMainCategory::class);
+    }
+    
+    public function category()
+    {
+        return $this->hasMany(ProductCategory::class);
     }
 }

@@ -22,7 +22,7 @@
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-header">
-                    <a href="{{ route('admin.permissions.create') }}" class="btn btn-primary float-end">Add New Permissions</a>
+                    <a href="{{ route('admin.permissions.create') }}" class="btn btn-primary float-end">Add New</a>
                 </div>
                 <div class="card-body">
                     <div class="mt-3 table-responsive">
