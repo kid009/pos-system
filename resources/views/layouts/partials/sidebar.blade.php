@@ -83,6 +83,12 @@
                             <li><a href="{{ route('store.products.index') }}">Products</a></li>
                         </ul>
                     </li>
+
+                    <li class="dropdown">
+                        <a class="nav-link" href="{{ route('store.customers.index') }}">
+                            <i data-feather="users"></i><span>Customer Management</span>
+                        </a>
+                    </li>
                     @endhasanyrole
 
                 </ul>

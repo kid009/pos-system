@@ -8,6 +8,10 @@
         <div class="row">
             <div class="col-sm-6">
                 <h3>Product Management</h3>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                    <li class="breadcrumb-item active">Product</li>
+                </ol>
             </div>
             <div class="col-sm-6">
                 
