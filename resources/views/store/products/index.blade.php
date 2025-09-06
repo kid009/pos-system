@@ -49,7 +49,7 @@
                                         @if($product->image)
                                             <img src="{{ asset("uploads/$product->image") }}" alt="{{ $product->name }}" width="60" class="img-thumbnail">
                                         @else
-                                            <span class="badge badge-light-danger">No Image</span>
+                                            <span class="badge badge-danger">No Image</span>
                                         @endif
                                     </td>
                                     <td>{{ $product->sku }}</td>

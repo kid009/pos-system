@@ -13,6 +13,7 @@
     @include('layouts.partials.css')
 
     <script src="{{ asset('assets/js/jquery-3.5.1.min.js') }}"></script>
+    @livewireStyles
 </head>
 
 <body>
@@ -57,6 +58,7 @@
     {{-- =================================================================== --}}
 
     @include('layouts.partials.js')
+    @livewireScripts
 
 </body>
 

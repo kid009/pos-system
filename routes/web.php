@@ -4,10 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Store\StockController;
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\TenantController;
+use App\Livewire\Store\Purchases\CreatePurchase;
+use App\Http\Controllers\Store\ExpenseController;
 use App\Http\Controllers\Store\ProductController;
 use App\Http\Controllers\Store\CustomerController;
+use App\Http\Controllers\Store\PurchaseController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Store\ExpenseCategoryController;
 use App\Http\Controllers\Store\ProductCategoryController;
@@ -54,6 +58,12 @@ Route::middleware(['auth', 'role:branch-manager|super-admin'])
         Route::resource('products', ProductController::class);
         Route::resource('customers', CustomerController::class);
         Route::resource('expense-categories', ExpenseCategoryController::class);
+        Route::resource('expenses', ExpenseController::class);
+        Route::get('/stock-adjustment', [StockController::class, 'adjustmentCreate'])->name('stock.adjustment.create'); // เพิ่ม
+        Route::post('/stock-adjustment', [StockController::class, 'adjustmentStore'])->name('stock.adjustment.store'); // เพิ่ม
+
+        // In store route group
+        Route::resource('purchases', PurchaseController::class);
     });
 
 require __DIR__.'/auth.php';
