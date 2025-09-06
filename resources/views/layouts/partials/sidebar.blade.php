@@ -88,6 +88,17 @@
                         <a class="nav-link" href="{{ route('store.customers.index') }}">
                             <i data-feather="users"></i><span>Customer Management</span>
                         </a>
+                        
+                    </li>
+
+                    <li class="dropdown">
+                        <a class="nav-link menu-title" href="javascript:void(0)">
+                            <i data-feather="package"></i><span>Expense Managerment</span>
+                        </a>
+                        <ul class="nav-submenu menu-content">
+                            <li><a href="{{ route('store.expense-categories.index') }}">Expense Categories</a></li>
+                            {{-- เดี๋ยวเราจะมาเพิ่มเมนู Expenses ที่นี่ในวันถัดไป --}}
+                        </ul>
                     </li>
                     @endhasanyrole
 

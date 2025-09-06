@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Store\ProductController;
 use App\Http\Controllers\Store\CustomerController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Store\ExpenseCategoryController;
 use App\Http\Controllers\Store\ProductCategoryController;
 use App\Http\Controllers\Store\ProductMainCategoryController;
 
@@ -52,6 +53,7 @@ Route::middleware(['auth', 'role:branch-manager|super-admin'])
         Route::resource('product-categories', ProductCategoryController::class);
         Route::resource('products', ProductController::class);
         Route::resource('customers', CustomerController::class);
+        Route::resource('expense-categories', ExpenseCategoryController::class);
     });
 
 require __DIR__.'/auth.php';
