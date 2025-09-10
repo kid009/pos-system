@@ -7,13 +7,13 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Store\StockController;
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\TenantController;
-use App\Livewire\Store\Purchases\CreatePurchase;
 use App\Http\Controllers\Store\ExpenseController;
 use App\Http\Controllers\Store\ProductController;
 use App\Http\Controllers\Store\CustomerController;
 use App\Http\Controllers\Store\PurchaseController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Store\ExpenseCategoryController;
+use App\Http\Controllers\Store\Pos\PosScreenController;
 use App\Http\Controllers\Store\ProductCategoryController;
 use App\Http\Controllers\Store\ProductMainCategoryController;
 
@@ -64,6 +64,8 @@ Route::middleware(['auth', 'role:branch-manager|super-admin'])
 
         // In store route group
         Route::resource('purchases', PurchaseController::class);
+
+        Route::get('/pos', [PosScreenController::class, 'index'])->name('pos.index');
     });
 
 require __DIR__.'/auth.php';

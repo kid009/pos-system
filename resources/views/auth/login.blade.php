@@ -7,11 +7,11 @@
     <form class="theme-form login-form" method="POST" action="{{ route('login') }}">
         @csrf
 
-        <h4>{{ __('Login') }}</h4>
-        <h6>{{ __('Welcome back! Log in to your account.') }}</h6>
+        <h4>ร้านพีแก๊ส</h4>
+        <h6>ยินดีต้อนรับเข้าสู่ระบบ</h6>
 
         <div class="form-group">
-            <label for="email">{{ __('Email Address') }}</label>
+            <label for="email">อีเมล</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="icon-email"></i></span>
                 <input id="email" class="form-control" type="email" name="email" :value="old('email')" required
@@ -21,7 +21,7 @@
         </div>
 
         <div class="form-group">
-            <label for="password">{{ __('Password') }}</label>
+            <label for="password">รหัสผ่าน</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="icon-lock"></i></span>
                 <input id="password" class="form-control" type="password" name="password" required
@@ -33,7 +33,7 @@
 
         <div class="form-group">
             <button class="btn btn-primary btn-block" type="submit">
-                {{ __('Sign in') }}
+                เข้าสู่ระบบ
             </button>
         </div>
 
