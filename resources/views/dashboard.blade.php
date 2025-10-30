@@ -1,40 +1,17 @@
-@extends('layouts.app')
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ __('Dashboard') }}
+        </h2>
+    </x-slot>
 
-@section('title', 'Dashboard')
-
-@section('content')
-<div class="container-fluid">
-    <div class="page-header">
-        <div class="row">
-            <div class="col-sm-6">
-                <h3>Dashboard</h3>
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                    <li class="breadcrumb-item active">Dashboard</li>
-                </ol>
-            </div>
-            <div class="col-sm-6">
-                <div class="bookmark">
-                    <ul>
-                        <li><a href="javascript:void(0)"><i class="bookmark-search" data-feather="star"></i></a></li>
-                    </ul>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+                    {{ __("You're logged in!") }}
                 </div>
             </div>
         </div>
     </div>
-</div>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="card">
-                <div class="card-header pb-0">
-                    <h5>Welcome!</h5>
-                </div>
-                <div class="card-body">
-                    <p>You are logged in!</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
+</x-app-layout>
