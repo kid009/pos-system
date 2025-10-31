@@ -41,6 +41,9 @@
     <link id="color" rel="stylesheet" href="{{ asset('admin_assets/css/color-1.css') }}" media="screen">
     <!-- Responsive css-->
     <link rel="stylesheet" type="text/css" href="{{ asset('admin_assets/css/responsive.css') }}">
+
+    <!-- latest jquery-->
+    <script src="{{ asset('admin_assets/js/jquery-3.5.1.min.js') }}"></script>
 </head>
 
 <body>
@@ -66,7 +69,24 @@
             <!-- Page Sidebar Ends-->
 
             <div class="page-body">
-                @yield('content')
+
+                {{-- breadcrumb --}}
+                <div class="container-fluid">
+                    <div class="page-header">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <ol class="breadcrumb">
+                                    @yield('breadcrumb')
+                                </ol>
+                            </div>
+                            <div class="col-sm-6"></div>
+                        </div>
+                    </div>
+                </div>
+                {{-- breadcrumb --}}
+                <div class="container-fluid">
+                    @yield('content')
+                </div>
             </div>
 
             <!-- footer start-->
@@ -77,8 +97,7 @@
 
     </div>
 
-    <!-- latest jquery-->
-    <script src="{{ asset('admin_assets/js/jquery-3.5.1.min.js') }}"></script>
+    
     <!-- feather icon js-->
     <script src="{{ asset('admin_assets/js/icons/feather-icon/feather.min.js') }}"></script>
     <script src="{{ asset('admin_assets/js/icons/feather-icon/feather-icon.js') }}"></script>

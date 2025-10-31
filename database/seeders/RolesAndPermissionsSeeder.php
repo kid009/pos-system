@@ -28,8 +28,8 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 2. สร้าง Admin User เริ่มต้น
         $adminUser = User::create([
-            'name' => 'Admin P-Gas',
-            'email' => 'admin@pgas.com', // อีเมลสำหรับ login
+            'name' => 'Administrator',
+            'email' => 'admin@mail.com', // อีเมลสำหรับ login
             'password' => Hash::make('password') // *** ตั้งรหัสผ่านที่ปลอดภัย!
         ]);
 
@@ -38,10 +38,17 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // (Optional) สร้าง Staff User ตัวอย่าง
         $staffUser = User::create([
-            'name' => 'Staff P-Gas',
-            'email' => 'staff@pgas.com',
+            'name' => 'Staff',
+            'email' => 'staff@mail.com',
             'password' => Hash::make('password')
         ]);
         $staffUser->assignRole($staffRole);
+
+        $employeeUser = User::create([
+            'name' => 'Employee',
+            'email' => 'employee@mail.com',
+            'password' => Hash::make('password')
+        ]);
+        $employeeUser->assignRole($employeeRole);
     }
 }
