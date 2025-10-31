@@ -20,8 +20,7 @@
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
 
-                        <a class="btn btn-primary-light" href="{{ route('logout') }}" onclick="event.preventDefault(); 
-                this.closest('form').submit();">
+                        <a class="btn btn-primary-light" href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();">
                             <i data-feather="log-out"></i>Log out
                         </a>
                     </form>
