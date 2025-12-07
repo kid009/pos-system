@@ -1,17 +1,30 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
-            </div>
-        </div>
+<x-layouts.app title="ภาพรวมธุรกิจ">
+  <div class="grid grid-cols-1 gap-6 mb-6 lg:grid-cols-3">
+    <div class="w-full px-4 py-5 bg-white rounded-lg shadow">
+      <div class="text-sm font-medium text-gray-500 truncate">
+        ยอดขายวันนี้
+      </div>
+      <div class="mt-1 text-3xl font-semibold text-gray-900">
+        ฿ 12,000
+      </div>
     </div>
-</x-app-layout>
+
+    <div class="w-full px-4 py-5 bg-white rounded-lg shadow">
+      <div class="text-sm font-medium text-gray-500 truncate">
+        ออเดอร์รอส่ง
+      </div>
+      <div class="mt-1 text-3xl font-semibold text-green-600">
+        5 รายการ
+      </div>
+    </div>
+
+    <div class="w-full px-4 py-5 bg-white rounded-lg shadow">
+      <div class="text-sm font-medium text-gray-500 truncate">
+        แก๊ส 15kg คงเหลือ
+      </div>
+      <div class="mt-1 text-3xl font-semibold text-red-600">
+        8 ถัง
+      </div>
+    </div>
+  </div>
+</x-layouts.app>
