@@ -114,7 +114,7 @@
                 <i class="fas fa-laugh-wink me-2"></i>POS System
             </div>
             <div class="list-group list-group-flush my-3">
-                <a href="#" class="list-group-item list-group-item-action bg-transparent text-white fw-bold">
+                <a href="{{ route('dashboard') }}" class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                 </a>
                 <a href="{{ route('admin.categories') }}"
@@ -126,7 +126,11 @@
                     class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.products') ? 'active' : '' }}">
                     <i class="fas fa-box me-2"></i>Products
                 </a>
-                <a href="#" class="list-group-item list-group-item-action bg-transparent text-white fw-bold">
+                <a href="{{ route('admin.customers') }}"
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.customers') ? 'active-link' : '' }}">
+                    <i class="fas fa-users me-2"></i>Customers
+                </a>
+                <a href="{{ route('pos') }}" class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('pos') ? 'active-link' : '' }}">
                     <i class="fas fa-shopping-cart me-2"></i>POS (Sale)
                 </a>
             </div>

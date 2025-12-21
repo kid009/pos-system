@@ -13,6 +13,8 @@ class ProductComponent extends Component
 {
     use WithPagination;
 
+    protected $paginationTheme = 'bootstrap';
+
     public $productId;
     public $category_id, $name, $cost, $price, $stock_qty;
     public $isOpen = false;

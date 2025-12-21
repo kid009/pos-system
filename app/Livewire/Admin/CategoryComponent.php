@@ -12,6 +12,8 @@ class CategoryComponent extends Component
 {
     use WithPagination;
 
+    protected $paginationTheme = 'bootstrap';
+
     public $name;
     public $categoryId; // ใช้เก็บ ID ตอน Edit
     public $isOpen = false; // State สำหรับเปิด/ปิด Modal

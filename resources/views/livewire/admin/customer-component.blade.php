@@ -1,0 +1,111 @@
+<div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-gray-800">Customers</h1>
+        <button wire:click="create" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> New Customer
+        </button>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <div class="input-group">
+                <input type="text" wire:model.live.debounce.300ms="search" class="form-control bg-light border-0 small" placeholder="Search for customer name or phone..." aria-label="Search">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="button">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Points</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($customers as $customer)
+                        <tr>
+                            <td>{{ $customer->id }}</td>
+                            <td>{{ $customer->name }}</td>
+                            <td>{{ $customer->phone ?? '-' }}</td>
+                            <td><span class="badge bg-success">{{ number_format($customer->points) }}</span></td>
+                            <td class="text-center">
+                                <button wire:click="edit({{ $customer->id }})" class="btn btn-sm btn-info text-white me-1">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-danger"
+                                        @click="$dispatch('open-confirm-modal', {
+                                            component: '{{ $this->getId() }}',
+                                            method: 'delete',
+                                            params: {{ $customer->id }},
+                                            title: 'Delete Customer?',
+                                            message: 'Are you sure you want to delete {{ $customer->name }}?'
+                                        })">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No customers found.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4">
+                {{ $customers->links() }}
+            </div>
+        </div>
+    </div>
+
+    @if($isOpen)
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ $customerId ? 'Edit Customer' : 'Add Customer' }}</h5>
+                    <button type="button" class="btn-close" wire:click="closeModal"></button>
+                </div>
+                <div class="modal-body">
+                    <form wire:submit="{{ $customerId ? 'update' : 'store' }}">
+
+                        <div class="mb-3">
+                            <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+                            <input type="text" wire:model="name" class="form-control @error('name') is-invalid @enderror">
+                            @error('name') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="text" wire:model="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="08XXXXXXXX">
+                            @error('phone') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Points</label>
+                            <input type="number" wire:model="points" class="form-control @error('points') is-invalid @enderror">
+                            @error('points') <span class="text-danger small">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" wire:click="closeModal" class="btn btn-secondary">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+</div>
