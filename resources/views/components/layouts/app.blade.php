@@ -25,12 +25,6 @@
                 <nav class="navbar navbar-expand-lg navbar-light bg-white py-2 px-4 shadow-sm mb-4">
                     <div class="d-flex align-items-center w-100 justify-content-between">
 
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-align-left primary-text fs-4 me-3" id="menu-toggle"
-                                style="cursor: pointer;"></i>
-                            <h2 class="fs-4 m-0 text-secondary">{{ $title ?? 'Dashboard' }}</h2>
-                        </div>
-
                         <div class="dropdown">
                             <button
                                 class="btn btn-link text-decoration-none dropdown-toggle d-flex align-items-center text-dark"
@@ -123,7 +117,13 @@
                 <a href="#" class="list-group-item list-group-item-action bg-transparent text-white fw-bold">
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                 </a>
-                <a href="#" class="list-group-item list-group-item-action bg-transparent text-white fw-bold">
+                <a href="{{ route('admin.categories') }}"
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.categories') ? 'active' : '' }}">
+                    <i class="fas fa-tags me-2"></i>Categories
+                </a>
+
+                <a href="{{ route('admin.products') }}"
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.products') ? 'active' : '' }}">
                     <i class="fas fa-box me-2"></i>Products
                 </a>
                 <a href="#" class="list-group-item list-group-item-action bg-transparent text-white fw-bold">
@@ -132,15 +132,14 @@
             </div>
         </div>
         <div id="page-content-wrapper" class="w-100">
-            <nav class="navbar navbar-expand-lg navbar-light bg-white py-4 px-4 shadow-sm">
-                <div class="d-flex align-items-center">
-                    <i class="fas fa-align-left primary-text fs-4 me-3" id="menu-toggle"></i>
-                    <h2 class="fs-2 m-0">Dashboard</h2>
-                </div>
-            </nav>
-
             <div class="container-fluid px-4 py-4">
+
+                <x-alert-message />
+
+                <x-confirm-modal />
+
                 {{ $slot }}
+
             </div>
         </div>
     </div>
