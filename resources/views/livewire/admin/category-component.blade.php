@@ -25,7 +25,7 @@
                                 <td>
                                     <button wire:click="edit({{ $category->id }})"
                                         class="btn btn-sm btn-info text-white">
-                                        Edit
+                                        <i class="fas fa-edit"></i>
                                     </button>
                                     <button type="button" class="btn btn-sm btn-danger"
                                         @click="$dispatch('open-confirm-modal', {
@@ -33,9 +33,9 @@
                                             method: 'delete',
                                             params: {{ $category->id }},
                                             title: 'Delete Category?',
-                                            message: 'If you delete this category, products inside might be affected.'
+                                            message: 'Do you want delete item?'
                                         })">
-                                        Delete
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </td>
                             </tr>

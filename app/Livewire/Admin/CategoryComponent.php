@@ -64,13 +64,15 @@ class CategoryComponent extends Component
         // Senior Tip: เช็คก่อนลบว่ามีสินค้าผูกอยู่ไหม เพื่อกัน Data Integrity Error
         $category = Category::find($id);
         if ($category->products()->exists()) {
-            session()->flash('error', 'Cannot delete! This category has products.');
+
+            $this->dispatch('notify', message: 'Cannot delete! This category has products.', type: 'error');
+
             return;
         }
 
         $category->delete();
 
-        $this->dispatch('notify', message: 'Category deleted successfully.', type: 'success');
+        $this->dispatch('notify', message: 'Category deleted successfully.', type: 'error');
     }
 
     public function closeModal()
