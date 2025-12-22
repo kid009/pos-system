@@ -117,6 +117,9 @@
                 <a href="{{ route('dashboard') }}" class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                 </a>
+                <a href="{{ route('sales-report') }}" class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('sales-report') ? 'active' : '' }}">
+                    <i class="fas fa-tachometer-alt me-2"></i>SalesReport
+                </a>
                 <a href="{{ route('admin.categories') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.categories') ? 'active' : '' }}">
                     <i class="fas fa-tags me-2"></i>Categories

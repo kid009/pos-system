@@ -3,27 +3,37 @@
     <div class="col-md-8 product-panel p-3 bg-light" style="height: 100vh; overflow-y: auto; padding-bottom: 100px;">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="fw-bold m-0 text-dark"><i class="fas fa-store me-2"></i>Product Catalog</h4>
-            @if(auth()->user()->role === 'admin')
+            @if (auth()->user()->role === 'admin')
                 <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-arrow-left"></i> Dashboard
                 </a>
             @endif
+
+            <button type="button" wire:click="logout"
+                wire:confirm="Are you sure you want to Logout? (คุณต้องการออกจากระบบใช่ไหม?)"
+                class="btn btn-danger btn-sm fw-bold">
+                <i class="fas fa-sign-out-alt me-1"></i> Logout
+            </button>
         </div>
 
         <div class="mb-4">
             <h6 class="text-muted mb-2 small fw-bold text-uppercase">Categories</h6>
             <div class="row g-2">
                 <div class="col-6 col-md-3">
-                    <button type="button" class="btn w-100 py-3 shadow-sm {{ $category_id === null ? 'btn-primary' : 'btn-white bg-white border' }}" wire:click="$set('category_id', null)">
+                    <button type="button"
+                        class="btn w-100 py-3 shadow-sm {{ $category_id === null ? 'btn-primary' : 'btn-white bg-white border' }}"
+                        wire:click="$set('category_id', null)">
                         <i class="fas fa-th-large me-1"></i> All Items
                     </button>
                 </div>
-                @foreach($categories as $cat)
-                <div class="col-6 col-md-3">
-                    <button type="button" class="btn w-100 py-3 shadow-sm text-truncate {{ $category_id == $cat->id ? 'btn-primary' : 'btn-white bg-white border' }}" wire:click="$set('category_id', {{ $cat->id }})">
-                        {{ $cat->name }}
-                    </button>
-                </div>
+                @foreach ($categories as $cat)
+                    <div class="col-6 col-md-3">
+                        <button type="button"
+                            class="btn w-100 py-3 shadow-sm text-truncate {{ $category_id == $cat->id ? 'btn-primary' : 'btn-white bg-white border' }}"
+                            wire:click="$set('category_id', {{ $cat->id }})">
+                            {{ $cat->name }}
+                        </button>
+                    </div>
                 @endforeach
             </div>
         </div>
@@ -31,33 +41,36 @@
         <h6 class="text-muted mb-2 small fw-bold text-uppercase">Products</h6>
         <div class="row g-3">
             @forelse($products as $product)
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="card h-100 border-0 shadow-sm user-select-none"
-                     style="cursor: pointer; transition: transform 0.2s;"
-                     onmouseover="this.style.transform='translateY(-5px)'"
-                     onmouseout="this.style.transform='translateY(0)'"
-                     @click="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }})">
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm user-select-none"
+                        style="cursor: pointer; transition: transform 0.2s;"
+                        onmouseover="this.style.transform='translateY(-5px)'"
+                        onmouseout="this.style.transform='translateY(0)'"
+                        @click="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }})">
 
-                    <div class="card-body text-center p-3 d-flex flex-column">
-                        <div class="bg-white rounded mb-2 d-flex align-items-center justify-content-center border" style="height: 100px;">
-                             @if($product->image_path)
-                                <img src="{{ asset('storage/'.$product->image_path) }}" class="img-fluid" style="max-height: 80px;">
-                            @else
-                                <i class="fas fa-box fa-3x text-secondary opacity-25"></i>
-                            @endif
-                        </div>
-                        <div class="mt-auto">
-                            <h6 class="card-title text-dark small fw-bold mb-1 text-truncate">{{ $product->name }}</h6>
-                            <div class="text-primary fw-bold">{{ number_format($product->price, 2) }}</div>
+                        <div class="card-body text-center p-3 d-flex flex-column">
+                            <div class="bg-white rounded mb-2 d-flex align-items-center justify-content-center border"
+                                style="height: 100px;">
+                                @if ($product->image_path)
+                                    <img src="{{ asset('storage/' . $product->image_path) }}" class="img-fluid"
+                                        style="max-height: 80px;">
+                                @else
+                                    <i class="fas fa-box fa-3x text-secondary opacity-25"></i>
+                                @endif
+                            </div>
+                            <div class="mt-auto">
+                                <h6 class="card-title text-dark small fw-bold mb-1 text-truncate">{{ $product->name }}
+                                </h6>
+                                <div class="text-primary fw-bold">{{ number_format($product->price, 2) }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             @empty
-            <div class="col-12 text-center py-5 text-muted">
-                <i class="fas fa-box-open fa-3x mb-3 opacity-50"></i>
-                <p>No products found.</p>
-            </div>
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="fas fa-box-open fa-3x mb-3 opacity-50"></i>
+                    <p>No products found.</p>
+                </div>
             @endforelse
         </div>
     </div>
@@ -89,11 +102,13 @@
                             <td class="align-middle text-center">
                                 <div class="btn-group btn-group-sm" role="group">
                                     <button class="btn btn-outline-secondary" @click="updateQty(index, -1)">-</button>
-                                    <button class="btn btn-white border disabled text-dark fw-bold" style="width: 35px;" x-text="item.qty"></button>
+                                    <button class="btn btn-white border disabled text-dark fw-bold" style="width: 35px;"
+                                        x-text="item.qty"></button>
                                     <button class="btn btn-outline-secondary" @click="updateQty(index, 1)">+</button>
                                 </div>
                             </td>
-                            <td class="align-middle text-end fw-bold pe-3" x-text="formatNumber(item.price * item.qty)"></td>
+                            <td class="align-middle text-end fw-bold pe-3" x-text="formatNumber(item.price * item.qty)">
+                            </td>
                             <td class="align-middle text-center">
                                 <button class="btn btn-link text-danger p-0" @click="removeItem(index)">
                                     <i class="fas fa-times"></i>
@@ -118,72 +133,69 @@
                 <span>Tax (0%)</span><span class="fw-bold text-dark">0.00</span>
             </div>
             <div class="d-flex justify-content-between mb-4 pb-3 border-bottom">
-                <h4 class="fw-bold text-dark">Total</h4><h4 class="fw-bold text-primary" x-text="formatNumber(grandTotal)"></h4>
+                <h4 class="fw-bold text-dark">Total</h4>
+                <h4 class="fw-bold text-primary" x-text="formatNumber(grandTotal)"></h4>
             </div>
-            <button class="btn btn-success w-100 py-3 fw-bold fs-5 shadow-sm text-uppercase d-flex justify-content-between px-4"
-                    :disabled="cart.length === 0"
-                    @click="$dispatch('open-checkout-modal', { total: grandTotal })">
+            <button
+                class="btn btn-success w-100 py-3 fw-bold fs-5 shadow-sm text-uppercase d-flex justify-content-between px-4"
+                :disabled="cart.length === 0" @click="$dispatch('open-checkout-modal', { total: grandTotal })">
                 <span>Checkout</span><span x-text="formatNumber(grandTotal)"></span>
             </button>
         </div>
     </div>
 
     <div x-data="{
-            showModal: false,
-            receivedAmount: '',
-            change: 0,
-            currentTotal: 0,
-            paymentMethod: 'cash',
-            customerId: '', // ✅ 1. เพิ่มตัวแปรเก็บ ID ลูกค้า
+        showModal: false,
+        receivedAmount: '',
+        change: 0,
+        currentTotal: 0,
+        paymentMethod: 'cash',
+        customerId: '', // ✅ 1. เพิ่มตัวแปรเก็บ ID ลูกค้า
 
-            openCheckout(detail) {
-                this.showModal = true;
-                this.receivedAmount = '';
-                this.change = 0;
-                this.paymentMethod = 'cash';
-                this.customerId = ''; // Reset ลูกค้าเป็นทั่วไปทุกครั้ง
-                this.currentTotal = detail.total;
+        openCheckout(detail) {
+            this.showModal = true;
+            this.receivedAmount = '';
+            this.change = 0;
+            this.paymentMethod = 'cash';
+            this.customerId = ''; // Reset ลูกค้าเป็นทั่วไปทุกครั้ง
+            this.currentTotal = detail.total;
 
-                setTimeout(() => {
-                    let input = document.getElementById('receivedInput');
-                    if(input) input.focus();
-                }, 100);
-            },
+            setTimeout(() => {
+                let input = document.getElementById('receivedInput');
+                if (input) input.focus();
+            }, 100);
+        },
 
-            calculateChange() {
-                let received = parseFloat(this.receivedAmount) || 0;
-                this.change = received - this.currentTotal;
-            },
+        calculateChange() {
+            let received = parseFloat(this.receivedAmount) || 0;
+            this.change = received - this.currentTotal;
+        },
 
-            confirmPayment() {
-                let received = parseFloat(this.receivedAmount) || 0;
-                let total = this.currentTotal;
+        confirmPayment() {
+            let received = parseFloat(this.receivedAmount) || 0;
+            let total = this.currentTotal;
 
-                if (this.paymentMethod !== 'unpaid' && received < total) {
-                    alert('Amount received is not enough!');
-                    return;
-                }
-
-                // ✅ 3. ส่ง customerId (หรือ null) ไป Backend ตัวสุดท้าย
-                $wire.checkout(this.cart, total, received, this.paymentMethod, this.customerId || null)
-                    .then(() => {
-                        this.showModal = false;
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        this.showModal = false;
-                        alert('Something went wrong. Please try again.');
-                    });
+            if (this.paymentMethod !== 'unpaid' && received < total) {
+                alert('Amount received is not enough!');
+                return;
             }
-        }"
-        @open-checkout-modal.window="openCheckout($event.detail)"
-        class="position-relative" style="z-index: 2000;">
 
-        <div x-show="showModal"
-             class="modal fade"
-             :class="{ 'show d-block': showModal }"
-             style="background: rgba(0,0,0,0.6); display: none;"
-             x-transition.opacity>
+            // ✅ 3. ส่ง customerId (หรือ null) ไป Backend ตัวสุดท้าย
+            $wire.checkout(this.cart, total, received, this.paymentMethod, this.customerId || null)
+                .then(() => {
+                    this.showModal = false;
+                })
+                .catch(err => {
+                    console.error(err);
+                    this.showModal = false;
+                    alert('Something went wrong. Please try again.');
+                });
+        }
+    }" @open-checkout-modal.window="openCheckout($event.detail)" class="position-relative"
+        style="z-index: 2000;">
+
+        <div x-show="showModal" class="modal fade" :class="{ 'show d-block': showModal }"
+            style="background: rgba(0,0,0,0.6); display: none;" x-transition.opacity>
 
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content shadow-lg border-0">
@@ -200,9 +212,9 @@
                             <label class="fw-bold mb-1"><i class="fas fa-user me-1"></i> Customer (ลูกค้า)</label>
                             <select x-model="customerId" class="form-select form-select-lg">
                                 <option value="">👤 General Customer (ลูกค้าทั่วไป)</option>
-                                @foreach($customers as $c)
+                                @foreach ($customers as $c)
                                     <option value="{{ $c->id }}">
-                                        {{ $c->name }} {{ $c->phone ? '('.$c->phone.')' : '' }}
+                                        {{ $c->name }} {{ $c->phone ? '(' . $c->phone . ')' : '' }}
                                     </option>
                                 @endforeach
                             </select>
@@ -221,26 +233,22 @@
                         <div class="form-group mb-4 text-start">
                             <label class="fw-bold mb-1">Received Amount</label>
                             <input type="number" id="receivedInput"
-                                   class="form-control form-control-lg text-center fw-bold fs-3"
-                                   x-model="receivedAmount"
-                                   @input="calculateChange()"
-                                   @keydown.enter="confirmPayment()"
-                                   placeholder="0.00">
+                                class="form-control form-control-lg text-center fw-bold fs-3" x-model="receivedAmount"
+                                @input="calculateChange()" @keydown.enter="confirmPayment()" placeholder="0.00">
                         </div>
 
                         <div class="alert alert-light border d-flex justify-content-between px-4 py-3"
-                             x-show="paymentMethod === 'cash'">
+                            x-show="paymentMethod === 'cash'">
                             <span class="fs-5 text-muted">Change:</span>
                             <span class="fs-4 fw-bold" :class="change < 0 ? 'text-danger' : 'text-success'"
-                                  x-text="formatNumber(change)"></span>
+                                x-text="formatNumber(change)"></span>
                         </div>
                     </div>
 
                     <div class="modal-footer justify-content-center p-3">
                         <button class="btn btn-secondary btn-lg px-4" @click="showModal = false">Cancel</button>
-                        <button class="btn btn-success btn-lg px-5 fw-bold"
-                                @click="confirmPayment()"
-                                :disabled="paymentMethod !== 'unpaid' && (!receivedAmount || change < 0)">
+                        <button class="btn btn-success btn-lg px-5 fw-bold" @click="confirmPayment()"
+                            :disabled="paymentMethod !== 'unpaid' && (!receivedAmount || change < 0)">
                             CONFIRM PAYMENT
                         </button>
                     </div>
@@ -251,8 +259,11 @@
 
     <script>
         function formatNumber(num) {
-            if(num === undefined || num === null) return '0.00';
-            return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+            if (num === undefined || num === null) return '0.00';
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(num);
         }
 
         function posSystem() {
@@ -268,18 +279,36 @@
                 },
                 addToCart(id, name, price) {
                     let existingItem = this.cart.find(item => item.id === id);
-                    if (existingItem) { existingItem.qty++; }
-                    else { this.cart.push({ id, name, price: parseFloat(price), qty: 1 }); }
+                    if (existingItem) {
+                        existingItem.qty++;
+                    } else {
+                        this.cart.push({
+                            id,
+                            name,
+                            price: parseFloat(price),
+                            qty: 1
+                        });
+                    }
                     this.playBeep();
                 },
                 updateQty(index, amount) {
-                    if (this.cart[index].qty + amount <= 0) { this.removeItem(index); }
-                    else { this.cart[index].qty += amount; }
+                    if (this.cart[index].qty + amount <= 0) {
+                        this.removeItem(index);
+                    } else {
+                        this.cart[index].qty += amount;
+                    }
                 },
-                removeItem(index) { this.cart.splice(index, 1); },
-                get grandTotal() { return this.cart.reduce((total, item) => total + (item.price * item.qty), 0); },
-                clearCart() { this.cart = []; },
-                playBeep() { /* Beep code */ }
+                removeItem(index) {
+                    this.cart.splice(index, 1);
+                },
+                get grandTotal() {
+                    return this.cart.reduce((total, item) => total + (item.price * item.qty), 0);
+                },
+                clearCart() {
+                    this.cart = [];
+                },
+                playBeep() {
+                    /* Beep code */ }
             }
         }
     </script>

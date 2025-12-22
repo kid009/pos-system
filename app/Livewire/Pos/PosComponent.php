@@ -32,6 +32,8 @@ class PosComponent extends Component
         DB::beginTransaction();
 
         try {
+
+
             // A. สร้างหัวบิล (Transaction)
             $transaction = Transaction::create([
                 'reference_no' => 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(6)), // Gen เลขบิลแบบง่าย
@@ -46,18 +48,20 @@ class PosComponent extends Component
 
             // B. วนลูปสินค้า เพื่อสร้าง Detail และตัดสต็อก
             foreach ($cart as $item) {
+                $product = Product::find($item['id']);
                 // บันทึกรายการสินค้า
                 TransactionDetail::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $item['id'],
                     'product_name' => $item['name'],
                     'price' => $item['price'],
+                    'cost' => $product->cost,
                     'quantity' => $item['qty'],
                     'total_price' => $item['price'] * $item['qty'],
                 ]);
 
                 // ตัดสต็อกสินค้า
-                $product = Product::find($item['id']);
+
                 if ($product) {
                     $product->decrement('stock_qty', $item['qty']);
                 }
@@ -74,6 +78,15 @@ class PosComponent extends Component
             DB::rollBack(); // ยกเลิกทั้งหมดถ้า error
             $this->dispatch('notify', message: 'Error: ' . $e->getMessage(), type: 'error');
         }
+    }
+
+    public function logout()
+    {
+        auth()->logout(); // ออกจากระบบ
+        session()->invalidate(); // ล้าง Session
+        session()->regenerateToken(); // สร้าง Token ใหม่เพื่อความปลอดภัย
+
+        return redirect('/login'); // ดีดกลับไปหน้า Login
     }
 
     public function render()

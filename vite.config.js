@@ -8,4 +8,12 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    css: {
+        preprocessorOptions: {
+            scss: {
+                api: 'modern-compiler', // บังคับใช้ modern compiler
+                silenceDeprecations: ['import'], // สั่งให้เงียบแจ้งเตือนเรื่อง import
+            },
+        },
+    },
 });
