@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 class PosComponent extends Component
 {
     public $category_id = null; // ต้องมีตัวแปรนี้
+    public $lastTransaction = null;
 
     public function checkout($cart, $totalAmount, $receivedAmount, $paymentMethod, $customerId)
     {
@@ -84,6 +85,14 @@ class PosComponent extends Component
             }
 
             DB::commit(); // ✅ บันทึกข้อมูลลงฐานข้อมูล
+
+            // ✅ 1. เก็บข้อมูลบิลล่าสุดไว้ เพื่อเอาไปแสดงในใบเสร็จ
+            // ต้องโหลด details มาด้วย ไม่งั้นหน้าใบเสร็จจะ Loop ไม่ได้
+            $this->lastTransaction = Transaction::with(['details', 'user', 'customer'])
+                                        ->find($transaction->id);
+
+            // ✅ 2. สั่ง Event ให้ Frontend เปิดหน้าต่าง Print
+            $this->dispatch('print-receipt');
 
             // 📝 LOG INFO: บันทึกเมื่อสร้างบิลสำเร็จ
             LogService::info("POS Transaction Created", [

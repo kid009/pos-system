@@ -257,6 +257,97 @@
         </div>
     </div>
 
+    <div id="printable-area" class="d-none d-print-block bg-white text-dark">
+        @if ($lastTransaction)
+            <div class="p-3" style="width: 100mm; min-height: 140mm; font-family: 'Sarabun', sans-serif;">
+
+                <div class="text-center mb-3">
+                    <p class="fw-bold">บิลเงินสด</p>
+                    <p class="fw-bold mb-0">ร้านพีแก๊ส</p>
+                    <p class="small mb-0">609 ม.2 ต.ขามทะเลสอ อ.ขามทะเลสอ นครราชสีมา 30280</p>
+                </div>
+
+                <div class="row small mb-2">
+                    <div class="col-12">
+                        <strong>เลขที่:</strong> {{ $lastTransaction->reference_no }}<br>
+                        <strong>วันที่:</strong> {{ $lastTransaction->created_at->format('d/m/Y H:i') }}<br>
+                        <strong>พนักงานขาย:</strong> {{ $lastTransaction->user->name ?? '-' }}<br>
+                        <strong>ลูกค้า:</strong> {{ $lastTransaction->customer->name ?? 'General' }}
+                    </div>
+                </div>
+
+                <table class="table table-sm border-white small mb-2">
+                    <thead>
+                        <tr class="border-bottom border-dark">
+                            <th>สินค้า</th>
+                            <th class="text-center">จำนวน</th>
+                            <th class="text-end">ราคา</th>
+                            <th class="text-end">ยอดเงิน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($lastTransaction->details as $item)
+                            <tr>
+                                <td>{{ Str::limit($item->product_name, 20) }}</td>
+                                <td class="text-center">{{ $item->quantity }}</td>
+                                <td class="text-end">{{ number_format($item->price, 2) }}</td>
+                                <td class="text-end">{{ number_format($item->total_price, 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                <hr class="border-dark opacity-100 my-2">
+
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>รวมทั้งหมด</span>
+                    <span class="fs-5">{{ number_format($lastTransaction->total_amount, 2) }}</span>
+                </div>
+
+            </div>
+        @endif
+    </div>
+
+    <style>
+        @media print {
+
+            /* 1. ตั้งค่าหน้ากระดาษเป็น A6 */
+            @page {
+                size: A6;
+                /* หรือกำหนดเป็น mm: size: 105mm 148mm; */
+                margin: 0mm;
+            }
+
+            /* 2. ซ่อนทุกอย่างในหน้าเว็บ */
+            body * {
+                visibility: hidden;
+                margin: 0;
+                padding: 0;
+            }
+
+            /* 3. แสดงเฉพาะใบเสร็จ และจัดตำแหน่ง */
+            #printable-area,
+            #printable-area * {
+                visibility: visible;
+            }
+
+            #printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 5mm;
+            }
+
+            /* ซ่อน Header/Footer ของ Browser (บาง Browser อาจต้องตั้งค่าเอง) */
+            header,
+            footer {
+                display: none !important;
+            }
+        }
+    </style>
+
     <script>
         function formatNumber(num) {
             if (num === undefined || num === null) return '0.00';
@@ -308,8 +399,23 @@
                     this.cart = [];
                 },
                 playBeep() {
-                    /* Beep code */ }
+                    /* Beep code */
+                }
             }
         }
+
+        document.addEventListener('livewire:initialized', () => {
+
+            console.log('Livewire Loaded!'); // ✅ 1. ดูว่าบรรทัดนี้ขึ้นใน Console ไหม
+
+            Livewire.on('print-receipt', () => {
+                console.log('Received Print Event!'); // ✅ 2. ถ้ากดจ่ายเงิน บรรทัดนี้ต้องขึ้น
+
+                setTimeout(() => {
+                    window.print();
+                }, 1000); // เพิ่มเวลาเป็น 1 วินาที เผื่อเครื่องช้า
+            });
+
+        });
     </script>
 </div>
