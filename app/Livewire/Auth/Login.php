@@ -2,12 +2,14 @@
 
 namespace App\Livewire\Auth;
 
+use App\Services\LogService;
+use Exception;
+use Livewire\Component;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
-use Livewire\Component;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 
 #[Layout('components.layouts.guest')]
 #[Title('Login')]
@@ -25,27 +27,48 @@ class Login extends Component
             'password' => 'required',
         ]);
 
-        // 2. Rate Limiting (ป้องกันการเดารหัสผ่านรัวๆ)
-        $throttleKey = Str::lower($this->email) . '|' . request()->ip();
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-            $this->addError('email', "Too many login attempts. Please try again in $seconds seconds.");
-            return;
+        try {
+            // 2. Rate Limiting (ป้องกันการเดารหัสผ่านรัวๆ)
+            $throttleKey = Str::lower($this->email) . '|' . request()->ip();
+            if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+                $seconds = RateLimiter::availableIn($throttleKey);
+                $this->addError('email', "Too many login attempts. Please try again in $seconds seconds.");
+
+                LogService::warning('Login Brute Force Attempt', [
+                    'email_attempt' => $this->email,
+                ]);
+
+                return;
+            }
+
+            // 3. Attempt Login
+            if (!Auth::attempt(['email' => $this->email, 'password' => $this->password, 'is_active' => true], $this->remember)) {
+                RateLimiter::hit($throttleKey); // นับจำนวนครั้งที่ผิด
+                $this->addError('email', 'These credentials do not match our records.');
+
+                LogService::warning('Login Failed: Invalid Credentials', [
+                    'email_attempt' => $this->email
+                ]);
+                return;
+            }
+
+            LogService::info('User Login Success', [
+                'role' => auth()->user()->role
+            ]);
+
+            // 4. Login Success -> Clear Rate Limiter
+            RateLimiter::clear($throttleKey);
+            session()->regenerate(); // ป้องกัน Session Fixation Attack
+
+            // 5. Redirect based on Role
+            return $this->redirectBasedOnRole();
+        } catch (Exception $e) {
+            LogService::error('Login System Error', $e, [
+                'email_attempt' => $this->email
+            ]);
+
+            $this->addError('email', 'System Error');
         }
-
-        // 3. Attempt Login
-        if (!Auth::attempt(['email' => $this->email, 'password' => $this->password, 'is_active' => true], $this->remember)) {
-            RateLimiter::hit($throttleKey); // นับจำนวนครั้งที่ผิด
-            $this->addError('email', 'These credentials do not match our records.');
-            return;
-        }
-
-        // 4. Login Success -> Clear Rate Limiter
-        RateLimiter::clear($throttleKey);
-        session()->regenerate(); // ป้องกัน Session Fixation Attack
-
-        // 5. Redirect based on Role
-        return $this->redirectBasedOnRole();
     }
 
     private function redirectBasedOnRole()

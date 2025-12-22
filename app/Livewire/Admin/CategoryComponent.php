@@ -6,6 +6,8 @@ use App\Models\Category;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Title;
+use App\Services\LogService; // ✅ เรียกใช้ LogService
+use Exception;
 
 #[Title('Manage Categories')]
 class CategoryComponent extends Component
@@ -32,19 +34,39 @@ class CategoryComponent extends Component
     {
         $this->validate();
 
-        Category::create(['name' => $this->name]);
+        try {
+            // ✅ สร้างข้อมูล
+            $category = Category::create(['name' => $this->name]);
 
-        $this->isOpen = false;
+            // 📝 LOG INFO: บันทึกว่ามีการสร้างหมวดหมู่ใหม่
+            LogService::info('Category Created', [
+                'category_id' => $category->id,
+                'category_name' => $category->name
+            ]);
 
-        $this->dispatch('notify', message: 'Category created successfully.', type: 'success');
+            $this->isOpen = false;
+            $this->dispatch('notify', message: 'Category created successfully.', type: 'success');
+        } catch (Exception $e) {
+            // 📝 LOG ERROR: บันทึกเมื่อ Database พัง
+            LogService::error('Category Create Failed', $e, [
+                'name_attempt' => $this->name
+            ]);
+
+            $this->dispatch('notify', message: 'Error creating category.', type: 'error');
+        }
     }
 
     public function edit($id)
     {
-        $category = Category::findOrFail($id);
-        $this->categoryId = $id;
-        $this->name = $category->name;
-        $this->isOpen = true;
+        try {
+            $category = Category::findOrFail($id);
+            $this->categoryId = $id;
+            $this->name = $category->name;
+            $this->isOpen = true;
+        } catch (Exception $e) {
+            LogService::warning('Category Edit Not Found', ['id' => $id]);
+            $this->dispatch('notify', message: 'Category not found.', type: 'error');
+        }
     }
 
     public function update()
@@ -53,28 +75,72 @@ class CategoryComponent extends Component
             'name' => 'required|min:3|unique:categories,name,' . $this->categoryId,
         ]);
 
-        $category = Category::findOrFail($this->categoryId);
-        $category->update(['name' => $this->name]);
+        try {
+            $category = Category::findOrFail($this->categoryId);
 
-        $this->isOpen = false;
+            // เก็บชื่อเดิมไว้ Log ก่อนเปลี่ยน
+            $oldName = $category->name;
 
-        $this->dispatch('notify', message: 'Category updated successfully.', type: 'success');
+            $category->update(['name' => $this->name]);
+
+            // 📝 LOG INFO: บันทึกการแก้ไข
+            LogService::info('Category Updated', [
+                'category_id' => $category->id,
+                'old_name' => $oldName,
+                'new_name' => $this->name
+            ]);
+
+            $this->isOpen = false;
+            $this->dispatch('notify', message: 'Category updated successfully.', type: 'success');
+        } catch (Exception $e) {
+            LogService::error('Category Update Failed', $e, [
+                'category_id' => $this->categoryId
+            ]);
+            $this->dispatch('notify', message: 'Error updating category.', type: 'error');
+        }
     }
 
     public function delete($id)
     {
-        // Senior Tip: เช็คก่อนลบว่ามีสินค้าผูกอยู่ไหม เพื่อกัน Data Integrity Error
-        $category = Category::find($id);
-        if ($category->products()->exists()) {
+        try {
+            $category = Category::find($id);
 
-            $this->dispatch('notify', message: 'Cannot delete! This category has products.', type: 'error');
+            if (!$category) {
+                $this->dispatch('notify', message: 'Category not found.', type: 'error');
+                return;
+            }
 
-            return;
+            // 1. เช็คว่ามีสินค้าผูกอยู่ไหม
+            if ($category->products()->exists()) {
+
+                // 📝 LOG WARNING: แจ้งเตือนว่าลบไม่ได้เพราะติด Relation
+                LogService::warning('Category Delete Blocked (Has Products)', [
+                    'category_id' => $id,
+                    'category_name' => $category->name
+                ]);
+
+                $this->dispatch('notify', message: 'Cannot delete! This category has products.', type: 'error');
+                return;
+            }
+
+            // เก็บชื่อไว้ Log
+            $categoryName = $category->name;
+
+            // 2. ลบข้อมูล
+            $category->delete();
+
+            // 📝 LOG INFO: ลบสำเร็จ
+            LogService::info('Category Deleted', [
+                'category_id' => $id,
+                'category_name' => $categoryName
+            ]);
+
+            $this->dispatch('notify', message: 'Category deleted successfully.', type: 'success'); // แก้ type เป็น success
+
+        } catch (Exception $e) {
+            LogService::error('Category Delete Failed', $e, ['category_id' => $id]);
+            $this->dispatch('notify', message: 'Error deleting category.', type: 'error');
         }
-
-        $category->delete();
-
-        $this->dispatch('notify', message: 'Category deleted successfully.', type: 'error');
     }
 
     public function closeModal()

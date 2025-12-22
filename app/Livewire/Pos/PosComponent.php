@@ -2,17 +2,19 @@
 
 namespace App\Livewire\Pos;
 
+use Exception;
 use App\Models\Product;
 use Livewire\Component;
 use App\Models\Category;
+use App\Models\Customer;
 use App\Models\Transaction;
 use Illuminate\Support\Str;
+use App\Services\LogService;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Layout;
 use App\Models\TransactionDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Customer;
 
 #[Layout('components.layouts.pos')] // ✅ เรียกใช้ Layout ใหม่
 #[Title('Point of Sale')]
@@ -20,7 +22,7 @@ class PosComponent extends Component
 {
     public $category_id = null; // ต้องมีตัวแปรนี้
 
-    public function checkout($cart, $totalAmount, $receivedAmount, $paymentMethod = 'cash', $customerId = null)
+    public function checkout($cart, $totalAmount, $receivedAmount, $paymentMethod, $customerId)
     {
         // 1. Validation เบื้องต้น
         if (empty($cart)) {
@@ -28,16 +30,33 @@ class PosComponent extends Component
             return;
         }
 
-        // 2. เริ่ม Transaction Database (กันข้อมูลพังครึ่งๆ กลางๆ)
+        // 2. เริ่ม Transaction Database
         DB::beginTransaction();
 
         try {
+            // A. วนลูปเช็คสต็อกก่อน (สำคัญมาก! ต้องเช็คก่อนสร้างบิล)
+            foreach ($cart as $item) {
+                $product = Product::find($item['id']);
 
+                // ถ้าหาไม่เจอ หรือ สต็อกไม่พอ
+                if (!$product || $product->stock_qty < $item['qty']) {
 
-            // A. สร้างหัวบิล (Transaction)
+                    // 🚨 LOG CRITICAL: แจ้งเตือนสินค้าไม่พอขาย
+                    LogService::critical('POS Stock Mismatch Alert', [
+                        'product_id' => $item['id'],
+                        'product_name' => $item['name'],
+                        'req_qty' => $item['qty'],
+                        'current_stock' => $product ? $product->stock_qty : 'Not Found'
+                    ]);
+
+                    throw new Exception("สินค้า {$item['name']} มีไม่พอจำหน่าย (เหลือ {$product->stock_qty})");
+                }
+            }
+
+            // B. สร้างหัวบิล (Transaction)
             $transaction = Transaction::create([
-                'reference_no' => 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(6)), // Gen เลขบิลแบบง่าย
-                'user_id' => Auth::user()->id,
+                'reference_no' => 'INV-' . date('YmdHis') . '-' . strtoupper(Str::random(4)),
+                'user_id' => auth()->id(), // ใช้ auth()->id() สั้นกว่า
                 'customer_id' => $customerId,
                 'total_amount' => $totalAmount,
                 'received_amount' => $receivedAmount,
@@ -46,47 +65,62 @@ class PosComponent extends Component
                 'status' => 'completed'
             ]);
 
-            // B. วนลูปสินค้า เพื่อสร้าง Detail และตัดสต็อก
+            // C. บันทึกรายการสินค้า และ ตัดสต็อกจริง
             foreach ($cart as $item) {
                 $product = Product::find($item['id']);
-                // บันทึกรายการสินค้า
+
                 TransactionDetail::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $item['id'],
                     'product_name' => $item['name'],
                     'price' => $item['price'],
-                    'cost' => $product->cost,
+                    'cost' => $product->cost, // เก็บต้นทุน ณ วันที่ขาย
                     'quantity' => $item['qty'],
                     'total_price' => $item['price'] * $item['qty'],
                 ]);
 
-                // ตัดสต็อกสินค้า
-
-                if ($product) {
-                    $product->decrement('stock_qty', $item['qty']);
-                }
+                // ตัดสต็อก
+                $product->decrement('stock_qty', $item['qty']);
             }
 
-            DB::commit(); // บันทึกจริง
+            DB::commit(); // ✅ บันทึกข้อมูลลงฐานข้อมูล
 
-            // C. แจ้งเตือน และ สั่งเคลียร์ตะกร้าหน้าบ้าน
+            // 📝 LOG INFO: บันทึกเมื่อสร้างบิลสำเร็จ
+            LogService::info("POS Transaction Created", [
+                'ref_no' => $transaction->reference_no,
+                'amount' => $totalAmount,
+                'payment_method' => $paymentMethod,
+                'items_count' => count($cart)
+            ]);
+
+            // D. แจ้งเตือนหน้าจอ
             $this->dispatch('notify', message: 'Payment Successful! Change: ' . number_format($transaction->change_amount, 2), type: 'success');
-
-            // ส่ง Event กลับไปบอก Alpine ให้เคลียร์ตะกร้า
             $this->dispatch('transaction-completed');
-        } catch (\Exception $e) {
-            DB::rollBack(); // ยกเลิกทั้งหมดถ้า error
+        } catch (Exception $e) {
+            DB::rollBack(); // ❌ ยกเลิกทั้งหมดถ้า error
+
+            // 📝 LOG ERROR: บันทึก Error (ส่ง Exception เข้าไปเลย Service จะแตกข้อมูลให้)
+            LogService::error("POS Checkout Failed", $e, [
+                'cart_data' => $cart, // เก็บข้อมูลตะกร้าไว้ดูว่าลูกค้าพยายามซื้ออะไร
+                'total_amount' => $totalAmount
+            ]);
+
             $this->dispatch('notify', message: 'Error: ' . $e->getMessage(), type: 'error');
         }
     }
 
     public function logout()
     {
-        auth()->logout(); // ออกจากระบบ
-        session()->invalidate(); // ล้าง Session
-        session()->regenerateToken(); // สร้าง Token ใหม่เพื่อความปลอดภัย
+        // 📝 LOG INFO: ใคร Logout
+        LogService::info("User Logout", [
+            'role' => auth()->user()->role ?? 'staff'
+        ]);
 
-        return redirect('/login'); // ดีดกลับไปหน้า Login
+        auth()->logout();
+        session()->invalidate();
+        session()->regenerateToken();
+
+        return redirect('/login');
     }
 
     public function render()

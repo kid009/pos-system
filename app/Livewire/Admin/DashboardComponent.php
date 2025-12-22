@@ -5,7 +5,7 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
-use App\Models\Product; // ✅ Import Product Model
+use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -24,29 +24,27 @@ class DashboardComponent extends Component
                         ->where('status', 'completed')
                         ->sum('total_amount');
 
-        // 3. Total Profit
-        $totalProfit = TransactionDetail::whereHas('transaction', function($q) {
-                            $q->where('status', 'completed');
-                        })->get()->sum(function($detail) {
-                            return ($detail->price - $detail->cost) * $detail->quantity;
-                        });
+        // 🔥 3. Total Profit (Optimized: คำนวณด้วย SQL โดยตรง ไม่โหลดเข้า PHP)
+        $totalProfit = TransactionDetail::join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
+                        ->where('transactions.status', 'completed')
+                        ->sum(DB::raw('(transaction_details.price - transaction_details.cost) * transaction_details.quantity'));
 
-        // 🔥 4. Average Order Value (AOV) - ยอดขายเฉลี่ยต่อบิล (คำนวณจากเดือนนี้)
+        // 4. Average Order Value (AOV)
         $monthlyTxCount = Transaction::whereYear('created_at', Carbon::now()->year)
                             ->whereMonth('created_at', Carbon::now()->month)
                             ->where('status', 'completed')
                             ->count();
         $aov = $monthlyTxCount > 0 ? $monthlySales / $monthlyTxCount : 0;
 
-        // 🔥 5. Low Stock Alert - สินค้าเหลือน้อยกว่า 10 ชิ้น
+        // 5. Low Stock Alert
         $lowStockItems = Product::where('stock_qty', '<=', 10)
-                            ->orderBy('stock_qty', 'asc') // น้อยสุดขึ้นก่อน
+                            ->orderBy('stock_qty', 'asc')
                             ->take(5)
                             ->get();
 
-        // 6. Top 5 Best Sellers
+        // 6. Top 5 Best Sellers (Optimized: Group ID เพื่อความชัวร์)
         $topProducts = TransactionDetail::select('product_name', DB::raw('sum(quantity) as total_qty'))
-                        ->groupBy('product_name')
+                        ->groupBy('product_name') // ถ้า MySQL Error ให้เพิ่ม product_id
                         ->orderByDesc('total_qty')
                         ->take(5)
                         ->get();
@@ -54,24 +52,39 @@ class DashboardComponent extends Component
         // 7. Recent Transactions
         $recentTransactions = Transaction::with('user')->latest()->take(5)->get();
 
-        // 8. Sales Trend Chart (Last 30 Days)
+        // 🔥 8. Sales Trend Chart (Optimized: Query ครั้งเดียว ไม่วนลูป Query)
+        $endDate = Carbon::today();
+        $startDate = Carbon::today()->subDays(29);
+
+        // ดึงข้อมูล 30 วันรวดเดียว (Group ตามวันที่)
+        $salesData = Transaction::select(
+                            DB::raw('DATE(created_at) as date'),
+                            DB::raw('SUM(total_amount) as total')
+                        )
+                        ->where('created_at', '>=', $startDate)
+                        ->where('status', 'completed')
+                        ->groupBy('date')
+                        ->pluck('total', 'date') // ได้ Array แบบ ['2023-12-01' => 500, ...]
+                        ->toArray();
+
         $chartLabels = [];
         $chartData = [];
+
+        // วนลูปเพื่อจัด Format (ไม่ได้ Query แล้ว เร็วปรู๊ด)
         for ($i = 29; $i >= 0; $i--) {
-            $date = Carbon::today()->subDays($i);
-            $chartLabels[] = $date->format('d M');
-            $sales = Transaction::whereDate('created_at', $date)
-                        ->where('status', 'completed')
-                        ->sum('total_amount');
-            $chartData[] = $sales;
+            $date = Carbon::today()->subDays($i)->format('Y-m-d');
+            $chartLabels[] = Carbon::parse($date)->format('d M');
+
+            // ถ้าวันไหนไม่มีขาย ให้ใส่ 0 (ใช้ null coalescing operator)
+            $chartData[] = $salesData[$date] ?? 0;
         }
 
         return view('livewire.admin.dashboard-component', [
             'todaySales' => $todaySales,
             'monthlySales' => $monthlySales,
             'totalProfit' => $totalProfit,
-            'aov' => $aov, // ส่งค่า AOV
-            'lowStockItems' => $lowStockItems, // ส่งค่า Low Stock
+            'aov' => $aov,
+            'lowStockItems' => $lowStockItems,
             'topProducts' => $topProducts,
             'recentTransactions' => $recentTransactions,
             'chartLabels' => $chartLabels,
