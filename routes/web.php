@@ -10,6 +10,7 @@ use App\Livewire\Admin\CategoryComponent;
 use App\Livewire\Admin\CustomerComponent;
 use App\Livewire\Admin\DashboardComponent;
 use App\Livewire\Admin\SalesReportComponent;
+use App\Livewire\Admin\TransactionHistoryComponent;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +47,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/pos', PosComponent::class)->name('pos');
 
-    Route::get('/stock-in', StockInComponent::class)->name('stock-in');
+    Route::get('/stock-in', StockInComponent::class)->name('admin.stock-in');
+
+    Route::get('/transaction-history', TransactionHistoryComponent::class)->name('admin.transaction-history');
 
 });
 

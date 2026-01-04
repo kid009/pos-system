@@ -13,14 +13,20 @@ class DashboardComponent extends Component
 {
     public function render()
     {
+        // กำหนดช่วงเวลา (เพื่อให้แน่ใจว่า Timezone ตรงกัน)
+        $startOfDay = Carbon::today()->startOfDay();
+        $endOfDay   = Carbon::today()->endOfDay();
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth   = Carbon::now()->endOfMonth();
+
         // 1. Today's Sales
-        $todaySales = Transaction::whereDate('created_at', Carbon::today())
+        $todaySales = Transaction::whereDate('created_at', [$startOfDay, $endOfDay])
                         ->where('status', 'completed')
-                        ->sum('total_amount');
+                        ->sum('received_amount');
 
         // 2. Monthly Sales
         $monthlySales = Transaction::whereYear('created_at', Carbon::now()->year)
-                        ->whereMonth('created_at', Carbon::now()->month)
+                        ->whereMonth('created_at', [$startOfMonth, $endOfMonth])
                         ->where('status', 'completed')
                         ->sum('total_amount');
 
