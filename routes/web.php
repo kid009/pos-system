@@ -5,6 +5,7 @@ use App\Livewire\Pos\PosComponent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Admin\ProductComponent;
+use App\Livewire\Admin\StockInComponent;
 use App\Livewire\Admin\CategoryComponent;
 use App\Livewire\Admin\CustomerComponent;
 use App\Livewire\Admin\DashboardComponent;
@@ -44,6 +45,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/customers', CustomerComponent::class)->name('admin.customers');
 
     Route::get('/pos', PosComponent::class)->name('pos');
+
+    Route::get('/stock-in', StockInComponent::class)->name('stock-in');
 
 });
 

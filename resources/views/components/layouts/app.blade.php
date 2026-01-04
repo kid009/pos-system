@@ -129,6 +129,10 @@
                     class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.products') ? 'active' : '' }}">
                     <i class="fas fa-box me-2"></i>Products
                 </a>
+                <a href="{{ route('stock-in') }}"
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('stock-in') ? 'active-link' : '' }}">
+                    <i class="fas fa-users me-2"></i>Stock In
+                </a>
                 <a href="{{ route('admin.customers') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.customers') ? 'active-link' : '' }}">
                     <i class="fas fa-users me-2"></i>Customers
