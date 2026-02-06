@@ -288,7 +288,7 @@
                     <tbody>
                         @foreach ($lastTransaction->details as $item)
                             <tr>
-                                <td>{{ Str::limit($item->product_name, 20) }}</td>
+                                <td>{{ $item->product_name }}</td>
                                 <td class="text-center">{{ $item->quantity }}</td>
                                 <td class="text-end">{{ number_format($item->price, 2) }}</td>
                                 <td class="text-end">{{ number_format($item->total_price, 2) }}</td>
@@ -406,7 +406,7 @@
 
         document.addEventListener('livewire:initialized', () => {
 
-            console.log('Livewire Loaded!'); // ✅ 1. ดูว่าบรรทัดนี้ขึ้นใน Console ไหม
+            // console.log('Livewire Loaded!'); // ✅ 1. ดูว่าบรรทัดนี้ขึ้นใน Console ไหม
 
             Livewire.on('print-receipt', () => {
                 console.log('Received Print Event!'); // ✅ 2. ถ้ากดจ่ายเงิน บรรทัดนี้ต้องขึ้น
