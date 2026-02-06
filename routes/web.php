@@ -10,6 +10,8 @@ use App\Livewire\Admin\CategoryComponent;
 use App\Livewire\Admin\CustomerComponent;
 use App\Livewire\Admin\DashboardComponent;
 use App\Livewire\Admin\SalesReportComponent;
+use App\Livewire\Admin\MainCategoryComponent;
+use App\Livewire\Admin\ExpenseCategoryComponent;
 use App\Livewire\Admin\TransactionHistoryComponent;
 
 /*
@@ -51,6 +53,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/transaction-history', TransactionHistoryComponent::class)->name('admin.transaction-history');
 
+    Route::get('/expense-categories', ExpenseCategoryComponent::class)->name('admin.expense-categories');
+
+    Route::get('/main-categories', MainCategoryComponent::class)->name('admin.main-categories');
 });
 
 // 4. POS / Employee Routes

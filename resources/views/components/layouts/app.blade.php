@@ -114,16 +114,25 @@
                 <i class="fas fa-laugh-wink me-2"></i>POS System
             </div>
             <div class="list-group list-group-flush my-3">
+
                 <a href="{{ route('dashboard') }}" class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                 </a>
+
                 <a href="{{ route('sales-report') }}" class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('sales-report') ? 'active' : '' }}">
                     <i class="fas fa-tachometer-alt me-2"></i>SalesReport
                 </a>
+
                 <a href="{{ route('admin.transaction-history') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.transaction-history') ? 'active-link' : '' }}">
                     <i class="fas fa-users me-2"></i>Transaction History
                 </a>
+
+                <a href="{{ route('admin.main-categories') }}"
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.main-categories') ? 'active' : '' }}">
+                    <i class="fas fa-tags me-2"></i>Main Categories
+                </a>
+
                 <a href="{{ route('admin.categories') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.categories') ? 'active' : '' }}">
                     <i class="fas fa-tags me-2"></i>Categories
@@ -133,17 +142,26 @@
                     class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.products') ? 'active' : '' }}">
                     <i class="fas fa-box me-2"></i>Products
                 </a>
+
                 <a href="{{ route('admin.stock-in') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.stock-in') ? 'active-link' : '' }}">
                     <i class="fas fa-users me-2"></i>Stock In
                 </a>
+
                 <a href="{{ route('admin.customers') }}"
                     class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.customers') ? 'active-link' : '' }}">
                     <i class="fas fa-users me-2"></i>Customers
                 </a>
+
+                <a href="{{ route('admin.expense-categories') }}"
+                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.expense-categories') ? 'active-link' : '' }}">
+                    <i class="fas fa-users me-2"></i>Expense Categories
+                </a>
+
                 <a href="{{ route('pos') }}" class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('pos') ? 'active-link' : '' }}">
                     <i class="fas fa-shopping-cart me-2"></i>POS (Sale)
                 </a>
+
             </div>
         </div>
         <div id="page-content-wrapper" class="w-100">
