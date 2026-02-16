@@ -1,15 +1,15 @@
 <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 text-gray-800">Customers</h1>
+        <h1 class="h3 text-gray-800">รายชื่อลูกค้า</h1>
         <button wire:click="create" class="btn btn-primary">
-            <i class="fas fa-user-plus"></i> New Customer
+            <i class="fas fa-user-plus"></i> เพิ่มลูกค้า
         </button>
     </div>
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <div class="input-group">
-                <input type="text" wire:model.live.debounce.300ms="search" class="form-control bg-light border-0 small" placeholder="Search for customer name or phone..." aria-label="Search">
+                <input type="text" wire:model.live.debounce.300ms="search" class="form-control bg-light border-0 small" placeholder="ค้นหาด้วยชื่อ หรือ เบอร์โทรศัพท์" aria-label="Search">
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="button">
                         <i class="fas fa-search fa-sm"></i>
@@ -22,10 +22,10 @@
                 <table class="table table-bordered" width="100%" cellspacing="0">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Phone</th>
-                            <th>Points</th>
+                            <th>#</th>
+                            <th>ชื่อลูกค้า</th>
+                            <th>เบอร์โทรศัพท์</th>
+                            <th>คะแนนสะสม</th>
                             <th class="text-center">Actions</th>
                         </tr>
                     </thead>
@@ -56,7 +56,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">No customers found.</td>
+                            <td colspan="5" class="text-center py-4 text-muted">ไม่มีข้อมูล</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -81,26 +81,26 @@
                     <form wire:submit="{{ $customerId ? 'update' : 'store' }}">
 
                         <div class="mb-3">
-                            <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+                            <label class="form-label">ชื่อลูกค้า <span class="text-danger">*</span></label>
                             <input type="text" wire:model="name" class="form-control @error('name') is-invalid @enderror">
                             @error('name') <span class="text-danger small">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Phone Number</label>
+                            <label class="form-label">เบอร์โทรศัพท์ <label>
                             <input type="text" wire:model="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="08XXXXXXXX">
                             @error('phone') <span class="text-danger small">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Points</label>
+                            <label class="form-label">คะแนนสะสม</label>
                             <input type="number" wire:model="points" class="form-control @error('points') is-invalid @enderror">
                             @error('points') <span class="text-danger small">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="text-end">
-                            <button type="button" wire:click="closeModal" class="btn btn-secondary">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="button" wire:click="closeModal" class="btn btn-secondary">ยกเลิก</button>
+                            <button type="submit" class="btn btn-primary">บันทึก</button>
                         </div>
                     </form>
                 </div>

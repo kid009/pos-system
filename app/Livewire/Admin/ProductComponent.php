@@ -93,7 +93,7 @@ class ProductComponent extends Component
         // 1. กำหนดกฎ Validation พื้นฐาน
         $rules = [
             'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:products,name,' . $this->editingId,
             'barcode' => 'nullable|string|max:255|unique:products,barcode,' . $this->editingId,
             'cost' => 'required|numeric|min:0',
             'price' => 'required|numeric|min:0',

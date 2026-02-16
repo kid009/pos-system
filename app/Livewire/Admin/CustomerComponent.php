@@ -28,7 +28,7 @@ class CustomerComponent extends Component
     protected function rules()
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:customers,name,' . $this->customerId,
             'phone' => 'nullable|string|max:20|unique:customers,phone,' . $this->customerId,
             'points' => 'integer|min:0'
         ];

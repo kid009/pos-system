@@ -17,13 +17,13 @@
                     </div>
                 </div>
                 <div class="d-flex gap-2">
-                    @if (auth()->user()->role === 'admin')
+                    @if (auth()->user()->role != 'staff')
                         <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center">
                             <i class="fas fa-chart-line me-2"></i> <span class="d-none d-sm-inline">Dashboard</span>
                         </a>
                     @endif
                     <button type="button" wire:click="logout" wire:confirm="Confirm Logout?" class="btn btn-danger btn-sm d-flex align-items-center">
-                        <i class="fas fa-power-off me-2"></i> <span class="d-none d-sm-inline">Logout</span>
+                        <i class="fas fa-power-off me-2"></i> <span class="d-none d-sm-inline">ออกจากระบบ</span>
                     </button>
                 </div>
             </div>
@@ -33,7 +33,7 @@
                 <div class="mb-4 sticky-top pt-1" style="top: -1rem; z-index: 10; background: transparent;">
                     <div class="d-flex gap-2 overflow-auto pb-2 px-1" style="white-space: nowrap; scrollbar-width: none;">
                         <button type="button" class="btn rounded-pill px-4 shadow-sm border {{ $category_id === null ? 'btn-dark' : 'btn-white bg-white' }}" wire:click="$set('category_id', null)">
-                            <i class="fas fa-th-large me-1"></i> All
+                            <i class="fas fa-th-large me-1"></i> ทั้งหมด
                         </button>
                         @foreach ($categories as $cat)
                             <button type="button" class="btn rounded-pill px-4 shadow-sm border {{ $category_id == $cat->id ? 'btn-dark' : 'btn-white bg-white' }}" wire:click="$set('category_id', {{ $cat->id }})">
@@ -73,7 +73,7 @@
                     @empty
                         <div class="col-12 text-center py-5 text-muted mt-5">
                             <div class="mb-3"><i class="fas fa-search fa-3x opacity-25"></i></div>
-                            <h5>No products found</h5>
+                            <h5>ไม่พบข้อมูล</h5>
                         </div>
                     @endforelse
                 </div>
@@ -86,9 +86,9 @@
             <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center shadow-sm flex-shrink-0">
                 <div class="d-flex align-items-center">
                     <i class="fas fa-shopping-cart fa-lg me-2"></i>
-                    <h5 class="m-0 fw-bold">Current Order</h5>
+                    <h5 class="m-0 fw-bold">รายการสินค้า</h5>
                 </div>
-                <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold fs-6" x-text="cart.length + ' Items'"></span>
+                <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold fs-6" x-text="cart.length + ' ชิ้น'"></span>
             </div>
 
             <!-- Cart Items -->
@@ -128,7 +128,7 @@
                     </template>
                     <div x-show="cart.length === 0" class="text-center py-5 text-muted d-flex flex-column align-items-center justify-content-center h-100">
                         <i class="fas fa-shopping-basket fa-4x mb-3 opacity-25"></i>
-                        <p class="mb-0">Cart is empty</p>
+                        <p class="mb-0">ไม่มีสินค้าในตะกร้า</p>
                     </div>
                 </div>
             </div>
@@ -137,14 +137,14 @@
             <div class="bg-white border-top shadow-lg p-3 flex-shrink-0 position-relative" style="z-index: 50;">
                 <div class="row g-2 mb-2">
                     <div class="col-6">
-                        <label class="small fw-bold text-muted mb-1">🚚 Delivery Fee</label>
+                        <label class="small fw-bold text-muted mb-1">🚚 ค่าขนส่ง</label>
                         <div class="input-group input-group-sm">
                             <input type="number" x-model="deliveryFee" class="form-control text-end fw-bold" placeholder="0">
                             <span class="input-group-text bg-light px-2">฿</span>
                         </div>
                     </div>
                     <div class="col-6">
-                        <label class="small fw-bold text-muted mb-1">🏷️ Discount</label>
+                        <label class="small fw-bold text-muted mb-1">🏷️ ส่วนลด</label>
                         <div class="input-group input-group-sm">
                             <input type="number" x-model="discount" class="form-control text-end fw-bold text-danger" placeholder="0">
                             <span class="input-group-text bg-light px-2">฿</span>
@@ -153,8 +153,8 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-end mb-3 border-top pt-2">
                     <div>
-                        <div class="small text-muted">Subtotal: <span x-text="formatNumber(grandTotal)"></span></div>
-                        <div class="fw-bold fs-5 text-dark lh-1">NET TOTAL</div>
+                        <div class="small text-muted">รวม: <span x-text="formatNumber(grandTotal)"></span></div>
+                        <div class="fw-bold fs-5 text-dark lh-1">รวมทั้งหหมด</div>
                     </div>
                     <div class="text-end">
                         <h1 class="fw-bold text-primary m-0 lh-1" x-text="formatNumber(netTotal)"></h1>
@@ -163,7 +163,7 @@
                 <button class="btn btn-success w-100 py-3 fw-bold fs-5 shadow-sm text-uppercase d-flex justify-content-between px-4 align-items-center"
                     :disabled="cart.length === 0"
                     @click="openPaymentModal()"> <!-- ✅ เรียกฟังก์ชันเปิด Modal ใน posSystem -->
-                    <span><i class="fas fa-wallet me-2"></i> PAY NOW</span>
+                    <span><i class="fas fa-wallet me-2"></i> จ่ายเงิน</span>
                     <span class="bg-white text-success px-2 rounded fs-6" x-text="formatNumber(netTotal)"></span>
                 </button>
             </div>
@@ -185,27 +185,27 @@
                      x-transition.scale.origin.center>
 
                     <div class="modal-header bg-success text-white p-3 d-flex justify-content-between align-items-center">
-                        <h5 class="m-0 fw-bold"><i class="fas fa-money-check-alt me-2"></i>Checkout</h5>
+                        <h5 class="m-0 fw-bold"><i class="fas fa-money-check-alt me-2"></i>ชำระเงิน</h5>
                         <button type="button" class="btn-close btn-close-white" @click="showModal = false"></button>
                     </div>
 
                     <div class="modal-body p-4 bg-light">
                         <!-- Top: Total -->
                         <div class="text-center mb-3 bg-white p-3 rounded shadow-sm border border-success border-opacity-25">
-                            <small class="text-muted text-uppercase fw-bold">Amount to Pay</small>
+                            <small class="text-muted text-uppercase fw-bold">จำนวนเงิน</small>
                             <h1 class="display-4 fw-bold text-success m-0" x-text="formatNumber(netTotal)"></h1>
                         </div>
 
                         <!-- ✅ Date Picker (Transaction Date) -->
                         <div class="mb-3">
-                            <label class="fw-bold small text-muted">Transaction Date (วันที่ขาย)</label>
+                            <label class="fw-bold small text-muted">วันที่ขาย</label>
                             <input type="datetime-local" x-model="transactionDate" class="form-control fw-bold border-secondary">
                         </div>
 
                         <div class="row g-3 mb-3">
                             <!-- Searchable Customer -->
                             <div class="col-12 position-relative">
-                                <label class="fw-bold small text-muted">Customer (ค้นหาลูกค้า)</label>
+                                <label class="fw-bold small text-muted">ค้นหาลูกค้า</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
                                     <input type="text" class="form-control" placeholder="พิมพ์ชื่อ หรือ เบอร์โทร..."
@@ -228,32 +228,32 @@
 
                             <!-- Payment Method -->
                             <div class="col-12">
-                                <label class="fw-bold small text-muted">Payment Method</label>
+                                <label class="fw-bold small text-muted">ช่องทางการชำระ</label>
                                 <div class="d-flex gap-2">
-                                    <button class="btn flex-fill py-2" :class="paymentMethod === 'cash' ? 'btn-success shadow' : 'btn-outline-secondary bg-white'" @click="paymentMethod = 'cash'"><i class="fas fa-money-bill me-1"></i> Cash</button>
-                                    <button class="btn flex-fill py-2" :class="paymentMethod === 'transfer' ? 'btn-info text-white shadow' : 'btn-outline-secondary bg-white'" @click="paymentMethod = 'transfer'"><i class="fas fa-university me-1"></i> Transfer</button>
-                                    <button class="btn flex-fill py-2" :class="paymentMethod === 'unpaid' ? 'btn-warning text-dark shadow' : 'btn-outline-secondary bg-white'" @click="paymentMethod = 'unpaid'"><i class="fas fa-clock me-1"></i> Credit</button>
+                                    <button class="btn flex-fill py-2" :class="paymentMethod === 'cash' ? 'btn-success shadow' : 'btn-outline-secondary bg-white'" @click="paymentMethod = 'cash'"><i class="fas fa-money-bill me-1"></i> เงินสด</button>
+                                    <button class="btn flex-fill py-2" :class="paymentMethod === 'transfer' ? 'btn-info text-white shadow' : 'btn-outline-secondary bg-white'" @click="paymentMethod = 'transfer'"><i class="fas fa-university me-1"></i> โอนธนาคาร</button>
+                                    <button class="btn flex-fill py-2" :class="paymentMethod === 'unpaid' ? 'btn-warning text-dark shadow' : 'btn-outline-secondary bg-white'" @click="paymentMethod = 'unpaid'"><i class="fas fa-clock me-1"></i> ค้างชำระ</button>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Amount Input -->
                         <div class="mb-3" x-show="paymentMethod !== 'unpaid'">
-                            <label class="fw-bold small text-muted">Received Amount</label>
+                            <label class="fw-bold small text-muted">จำนวนเงินที่ได้รับ</label>
                             <input type="number" id="receivedInput" class="form-control form-control-lg text-center fw-bold fs-1 text-success border-success" x-model="receivedAmount" placeholder="0.00" @keydown.enter="submitPayment()">
                         </div>
 
                         <!-- Change -->
                         <div class="alert alert-warning d-flex justify-content-between align-items-center mb-0 shadow-sm" x-show="paymentMethod === 'cash'">
-                            <span class="fw-bold text-uppercase">Change:</span>
+                            <span class="fw-bold text-uppercase">เงินทอน:</span>
                             <span class="fs-2 fw-bold" :class="changeAmount < 0 ? 'text-danger' : 'text-dark'" x-text="formatNumber(Math.max(0, changeAmount))"></span>
                         </div>
                     </div>
 
                     <div class="modal-footer p-3 bg-white border-top">
-                        <button class="btn btn-secondary px-4 btn-lg" @click="showModal = false">Cancel</button>
+                        <button class="btn btn-secondary px-4 btn-lg" @click="showModal = false">ยกเลิก</button>
                         <button class="btn btn-success px-5 fw-bold btn-lg shadow" @click="submitPayment()" :disabled="paymentMethod !== 'unpaid' && changeAmount < 0">
-                            CONFIRM PAYMENT
+                            ยืนยันชำระเงิน
                         </button>
                     </div>
                 </div>
@@ -266,7 +266,7 @@
                 <div class="p-3" style="width: 80mm; font-family: 'Sarabun', sans-serif; color: black;">
                     <div class="text-center mb-2">
                         <h4 class="fw-bold m-0">ร้านพีแก๊ส</h4>
-                        <p class="small mb-0">โทร: 0659244463</p>
+                        <p class="small mb-0">โทร: 065 924 4463</p>
                         <p class="small mb-0">--------------------------------</p>
                     </div>
                     <div class="mb-2" style="font-size: 12px;">
@@ -291,9 +291,9 @@
                         <tfoot style="border-top: 1px dashed black;">
                             @if ($lastTransaction->delivery_fee > 0) <tr><td colspan="2" class="text-end">ค่าขนส่ง:</td><td class="text-end">{{ number_format($lastTransaction->delivery_fee, 2) }}</td></tr> @endif
                             @if ($lastTransaction->discount_amount > 0) <tr><td colspan="2" class="text-end">ส่วนลด:</td><td class="text-end">-{{ number_format($lastTransaction->discount_amount, 2) }}</td></tr> @endif
-                            <tr class="fw-bold"><td colspan="2" class="text-end">NET TOTAL:</td><td class="text-end">{{ number_format($lastTransaction->total_amount, 2) }}</td></tr>
-                            <tr><td colspan="2" class="text-end">Received:</td><td class="text-end">{{ number_format($lastTransaction->received_amount, 2) }}</td></tr>
-                            <tr><td colspan="2" class="text-end">Change:</td><td class="text-end">{{ number_format($lastTransaction->change_amount, 2) }}</td></tr>
+                            <tr class="fw-bold"><td colspan="2" class="text-end">รวมทั้งหมด:</td><td class="text-end">{{ number_format($lastTransaction->total_amount, 2) }}</td></tr>
+                            <tr><td colspan="2" class="text-end">รับเงิน:</td><td class="text-end">{{ number_format($lastTransaction->received_amount, 2) }}</td></tr>
+                            <tr><td colspan="2" class="text-end">เงินทอน:</td><td class="text-end">{{ number_format($lastTransaction->change_amount, 2) }}</td></tr>
                         </tfoot>
                     </table>
                     <div class="text-center mt-3 small"><p class="mb-0">ขอบคุณครับ</p></div>

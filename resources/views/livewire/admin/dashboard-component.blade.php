@@ -10,7 +10,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-start border-primary border-4 h-100">
                 <div class="card-body">
-                    <div class="text-uppercase small fw-bold text-primary mb-1">Today's Sales (Cash In)</div>
+                    <div class="text-uppercase small fw-bold text-primary mb-1">ยอดขายวันนี้</div>
                     <div class="h3 mb-0 fw-bold text-gray-800">{{ number_format($todaySales, 2) }}</div>
                 </div>
             </div>
@@ -20,7 +20,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-start border-info border-4 h-100">
                 <div class="card-body">
-                    <div class="text-uppercase small fw-bold text-info mb-1">Monthly Sales (Total)</div>
+                    <div class="text-uppercase small fw-bold text-info mb-1">ยอดขายรายเดือน</div>
                     <div class="h3 mb-0 fw-bold text-gray-800">{{ number_format($monthlySales, 2) }}</div>
                 </div>
             </div>
@@ -30,7 +30,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-start border-success border-4 h-100">
                 <div class="card-body">
-                    <div class="text-uppercase small fw-bold text-success mb-1">Gross Profit (Month)</div>
+                    <div class="text-uppercase small fw-bold text-success mb-1">กำไรขั้นต้น</div>
                     <div class="h3 mb-0 fw-bold text-gray-800">
                         {{ number_format($totalProfit, 2) }}
                         <small class="fs-6 text-muted font-weight-normal">บาท</small>
@@ -43,7 +43,7 @@
         <div class="col-md-3">
             <div class="card shadow-sm border-start border-danger border-4 h-100">
                 <div class="card-body">
-                    <div class="text-uppercase small fw-bold text-danger mb-1">Unpaid / Credit (Total)</div>
+                    <div class="text-uppercase small fw-bold text-danger mb-1">ยอดค้างชำระ</div>
                     <div class="h3 mb-0 fw-bold text-danger">
                         {{ number_format($accountReceivable, 2) }}
                         <small class="fs-6 text-muted font-weight-normal">บาท</small>
@@ -60,7 +60,7 @@
         <div class="col-md-4">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-gas-pump me-2"></i>Cylinder Stats (Month)</h6>
+                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-gas-pump me-2"></i>สถิติการเคลื่อนไหวถังแก๊ส (เดือน)</h6>
                 </div>
                 <div class="card-body">
                     @if(count($cylinderStats) > 0)
@@ -96,7 +96,7 @@
         <div class="col-md-8">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-chart-area me-2"></i>Sales Trend (30 Days)</h6>
+                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-chart-area me-2"></i>แนวโน้มยอดขาย (30 วัน)</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="salesChart" style="height: 300px;"></canvas>
@@ -111,14 +111,14 @@
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h6 class="m-0 fw-bold text-success"><i class="fas fa-thumbs-up me-2"></i>Top 5 Best Sellers</h6>
+                    <h6 class="m-0 fw-bold text-success"><i class="fas fa-thumbs-up me-2"></i>สินค้าขายดี 5 อันดับ</h6>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
                         <thead class="bg-light">
                             <tr>
-                                <th class="ps-3">Product</th>
-                                <th class="text-end pe-3">Qty Sold</th>
+                                <th class="ps-3">สินค้า</th>
+                                <th class="text-end pe-3">จำนวนที่ขาย</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,7 +129,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="2" class="text-center py-3 text-muted">No sales data found</td>
+                                <td colspan="2" class="text-center py-3 text-muted">ไม่พบข้อมูลการขาย</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -142,14 +142,14 @@
         <div class="col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h6 class="m-0 fw-bold text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert</h6>
+                    <h6 class="m-0 fw-bold text-danger"><i class="fas fa-exclamation-triangle me-2"></i>แจ้งเตือนสินค้าเหลือน้อย</h6>
                 </div>
                 <div class="card-body p-0">
                     <table class="table table-hover mb-0">
                         <thead class="bg-light">
                             <tr>
-                                <th class="ps-3">Product</th>
-                                <th class="text-center">Remaining</th>
+                                <th class="ps-3">สินค้า</th>
+                                <th class="text-center">คงเหลือ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -161,7 +161,7 @@
                             @empty
                             <tr>
                                 <td colspan="2" class="text-center py-3 text-success">
-                                    <i class="fas fa-check-circle me-1"></i> Stock levels are good!
+                                    <i class="fas fa-check-circle me-1"></i> ระดับสต็อกเพียงพอ!
                                 </td>
                             </tr>
                             @endforelse

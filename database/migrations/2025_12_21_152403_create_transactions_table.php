@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('change_amount', 10, 2); // เงินทอน
             $table->enum('payment_method', ['cash', 'unpaid', 'transfer', 'half_half'])->default('cash');
             $table->string('status')->default('completed'); // สถานะ (completed, void)
+            $table->date('transaction_date')->default(date('Y-m-d')); // วันที่ขาย
             $table->timestamps();
         });
     }
