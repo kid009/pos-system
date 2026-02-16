@@ -2,7 +2,7 @@
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center my-4">
-        <h3 class="fw-bold text-primary">📂 หมวดหมู่ย่อย (Sub Categories)</h3>
+        <h3 class="fw-bold text-primary">📂 หมวดหมู่ (Categories)</h3>
         <button wire:click="create" class="btn btn-primary shadow-sm">
             <i class="fas fa-plus-circle me-1"></i> เพิ่มรายการ
         </button>
@@ -20,29 +20,21 @@
                 <table class="table table-hover align-middle">
                     <thead class="bg-light">
                         <tr>
-                            <th>หมวดหมู่หลัก (Main)</th>
-                            <th>หมวดหมู่ย่อย (Name)</th>
+                            <th>หมวดหมู่</th>
                             <th class="text-center">จัดการ</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($categories as $cat)
+                        @forelse($categories as $item)
                         <tr>
-                            <td>
-                                @if($cat->mainCategory)
-                                    <span class="badge bg-info text-dark">{{ $cat->mainCategory->name }}</span>
-                                @else
-                                    <span class="text-muted">- ไม่มี -</span>
-                                @endif
-                            </td>
-                            <td class="fw-bold text-dark">{{ $cat->name }}</td>
+                            <td class="fw-bold text-dark">{{ $item->name }}</td>
                             <td class="text-center">
-                                <button wire:click="edit({{ $cat->id }})" class="btn btn-sm btn-outline-warning me-1">
+                                <button wire:click="edit({{ $item->id }})" class="btn btn-sm btn-outline-warning me-1">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button
-                                    wire:confirm="ลบ '{{ $cat->name }}' ?"
-                                    wire:click="delete({{ $cat->id }})"
+                                    wire:confirm="ลบ '{{ $item->name }}' ?"
+                                    wire:click="delete({{ $item->id }})"
                                     class="btn btn-sm btn-outline-danger">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -90,21 +82,9 @@
             <div class="modal-body p-4">
               <form wire:submit.prevent="save">
 
-                <!-- Dropdown เลือกหมวดหมู่หลัก -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold">หมวดหมู่หลัก</label>
-                    <select wire:model="main_category_id" class="form-select">
-                        <option value="">-- เลือกหมวดหมู่หลัก (ถ้ามี) --</option>
-                        @foreach($mainCategories as $main)
-                            <option value="{{ $main->id }}">{{ $main->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('main_category_id') <div class="text-danger small">{{ $message }}</div> @enderror
-                </div>
-
                 <div class="mb-4">
-                  <label class="form-label fw-bold">ชื่อหมวดหมู่ย่อย <span class="text-danger">*</span></label>
-                  <input type="text" wire:model="name" class="form-control" placeholder="เช่น ค่าไฟฟ้า, ค่าเน็ต">
+                  <label class="form-label fw-bold">ชื่อหมวดหมู่ <span class="text-danger">*</span></label>
+                  <input type="text" wire:model="name" class="form-control">
                   @error('name') <div class="text-danger small">{{ $message }}</div> @enderror
                 </div>
 

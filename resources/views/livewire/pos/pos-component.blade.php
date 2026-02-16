@@ -1,421 +1,442 @@
-<div class="row g-0" x-data="posSystem()">
+<div class="h-100 w-100" style="position: fixed; top: 0; left: 0; overflow: hidden;">
 
-    <div class="col-md-8 product-panel p-3 bg-light" style="height: 100vh; overflow-y: auto; padding-bottom: 100px;">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold m-0 text-dark"><i class="fas fa-store me-2"></i>Product Catalog</h4>
-            @if (auth()->user()->role === 'admin')
-                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-arrow-left"></i> Dashboard
-                </a>
-            @endif
+    <!-- ✅ ส่งข้อมูลลูกค้า ($customers) เข้าไปใน Alpine ผ่าน Constructor -->
+    <div class="row g-0 h-100" x-data="posSystem(@js($customers))">
 
-            <button type="button" wire:click="logout"
-                wire:confirm="Are you sure you want to Logout? (คุณต้องการออกจากระบบใช่ไหม?)"
-                class="btn btn-danger btn-sm fw-bold">
-                <i class="fas fa-sign-out-alt me-1"></i> Logout
-            </button>
-        </div>
-
-        <div class="mb-4">
-            <h6 class="text-muted mb-2 small fw-bold text-uppercase">Categories</h6>
-            <div class="row g-2">
-                <div class="col-6 col-md-3">
-                    <button type="button"
-                        class="btn w-100 py-3 shadow-sm {{ $category_id === null ? 'btn-primary' : 'btn-white bg-white border' }}"
-                        wire:click="$set('category_id', null)">
-                        <i class="fas fa-th-large me-1"></i> All Items
+        <!-- ================= LEFT: PRODUCT PANEL ================= -->
+        <div class="col-md-7 col-lg-8 d-flex flex-column h-100 bg-light border-end">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center p-3 bg-white shadow-sm border-bottom flex-shrink-0">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary text-white rounded p-2 me-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="fas fa-store fa-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold m-0 text-dark lh-1">POS Terminal</h5>
+                        <small class="text-muted" style="font-size: 0.8rem;">User: {{ auth()->user()->name }}</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    @if (auth()->user()->role === 'admin')
+                        <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center">
+                            <i class="fas fa-chart-line me-2"></i> <span class="d-none d-sm-inline">Dashboard</span>
+                        </a>
+                    @endif
+                    <button type="button" wire:click="logout" wire:confirm="Confirm Logout?" class="btn btn-danger btn-sm d-flex align-items-center">
+                        <i class="fas fa-power-off me-2"></i> <span class="d-none d-sm-inline">Logout</span>
                     </button>
                 </div>
-                @foreach ($categories as $cat)
-                    <div class="col-6 col-md-3">
-                        <button type="button"
-                            class="btn w-100 py-3 shadow-sm text-truncate {{ $category_id == $cat->id ? 'btn-primary' : 'btn-white bg-white border' }}"
-                            wire:click="$set('category_id', {{ $cat->id }})">
-                            {{ $cat->name }}
+            </div>
+
+            <!-- Products -->
+            <div class="flex-grow-1 overflow-auto p-3" style="min-height: 0;">
+                <div class="mb-4 sticky-top pt-1" style="top: -1rem; z-index: 10; background: transparent;">
+                    <div class="d-flex gap-2 overflow-auto pb-2 px-1" style="white-space: nowrap; scrollbar-width: none;">
+                        <button type="button" class="btn rounded-pill px-4 shadow-sm border {{ $category_id === null ? 'btn-dark' : 'btn-white bg-white' }}" wire:click="$set('category_id', null)">
+                            <i class="fas fa-th-large me-1"></i> All
                         </button>
+                        @foreach ($categories as $cat)
+                            <button type="button" class="btn rounded-pill px-4 shadow-sm border {{ $category_id == $cat->id ? 'btn-dark' : 'btn-white bg-white' }}" wire:click="$set('category_id', {{ $cat->id }})">
+                                {{ $cat->name }}
+                            </button>
+                        @endforeach
                     </div>
-                @endforeach
+                </div>
+
+                <div class="row g-3 pb-5">
+                    @forelse($products as $product)
+                        <div class="col-6 col-md-4 col-xl-3">
+                            <div class="card h-100 border-0 shadow-sm user-select-none position-relative overflow-hidden group-hover-effect"
+                                style="cursor: pointer; transition: all 0.2s;"
+                                @click="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }}, '{{ $product->category->name ?? '' }}')">
+                                <div class="card-body text-center p-2 d-flex flex-column">
+                                    <div class="bg-white rounded mb-2 d-flex align-items-center justify-content-center border" style="height: 100px; width: 100%;">
+                                        @if ($product->image_path)
+                                            <img src="{{ asset('storage/' . $product->image_path) }}" class="img-fluid p-2" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                        @else
+                                            <i class="fas fa-box fa-2x text-secondary opacity-25"></i>
+                                        @endif
+                                    </div>
+                                    <div class="mt-auto text-start">
+                                        <h6 class="card-title text-dark fw-bold mb-1 lh-sm text-truncate-2" style="font-size: 0.9rem; height: 2.2em;">
+                                            {{ $product->name }}
+                                        </h6>
+                                        <div class="d-flex justify-content-between align-items-end mt-1">
+                                            <span class="badge bg-light text-dark border px-1" style="font-size: 0.7rem;">{{ $product->category->name ?? 'General' }}</span>
+                                            <span class="text-primary fw-bolder fs-5">{{ number_format($product->price, 0) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="position-absolute top-0 start-0 w-100 h-100 bg-primary bg-opacity-10 d-none overlay-hover"></div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-12 text-center py-5 text-muted mt-5">
+                            <div class="mb-3"><i class="fas fa-search fa-3x opacity-25"></i></div>
+                            <h5>No products found</h5>
+                        </div>
+                    @endforelse
+                </div>
             </div>
         </div>
 
-        <h6 class="text-muted mb-2 small fw-bold text-uppercase">Products</h6>
-        <div class="row g-3">
-            @forelse($products as $product)
-                <div class="col-6 col-md-4 col-lg-3">
-                    <div class="card h-100 border-0 shadow-sm user-select-none"
-                        style="cursor: pointer; transition: transform 0.2s;"
-                        onmouseover="this.style.transform='translateY(-5px)'"
-                        onmouseout="this.style.transform='translateY(0)'"
-                        @click="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }})">
+        <!-- ================= RIGHT: CART PANEL ================= -->
+        <div class="col-md-5 col-lg-4 d-flex flex-column h-100 bg-white shadow-lg border-start position-relative" style="z-index: 100;">
+            <!-- Cart Header -->
+            <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center shadow-sm flex-shrink-0">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-shopping-cart fa-lg me-2"></i>
+                    <h5 class="m-0 fw-bold">Current Order</h5>
+                </div>
+                <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold fs-6" x-text="cart.length + ' Items'"></span>
+            </div>
 
-                        <div class="card-body text-center p-3 d-flex flex-column">
-                            <div class="bg-white rounded mb-2 d-flex align-items-center justify-content-center border"
-                                style="height: 100px;">
-                                @if ($product->image_path)
-                                    <img src="{{ asset('storage/' . $product->image_path) }}" class="img-fluid"
-                                        style="max-height: 80px;">
-                                @else
-                                    <i class="fas fa-box fa-3x text-secondary opacity-25"></i>
-                                @endif
+            <!-- Cart Items -->
+            <div class="flex-grow-1 overflow-auto bg-light p-2" style="min-height: 0;">
+                <div class="d-flex flex-column gap-2">
+                    <template x-for="(item, index) in cart" :key="item.id">
+                        <div class="card border-0 shadow-sm p-2">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="fw-bold text-dark" x-text="item.name"></div>
+                                <button class="btn btn-sm text-danger p-0 ms-2" @click="removeItem(index)">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
-                            <div class="mt-auto">
-                                <h6 class="card-title text-dark small fw-bold mb-1 text-truncate">{{ $product->name }}
-                                </h6>
-                                <div class="text-primary fw-bold">{{ number_format($product->price, 2) }}</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="input-group input-group-sm w-auto border rounded">
+                                    <button class="btn btn-light btn-sm px-2 text-secondary" @click="updateQty(index, -1)"><i class="fas fa-minus small"></i></button>
+                                    <input type="text" class="form-control text-center bg-white border-0 p-0 fw-bold text-dark" style="width: 35px; height: 28px;" :value="item.qty" readonly>
+                                    <button class="btn btn-light btn-sm px-2 text-secondary" @click="updateQty(index, 1)"><i class="fas fa-plus small"></i></button>
+                                </div>
+                                <div class="text-end">
+                                    <div class="small text-muted" x-text="formatNumber(item.price) + ' /unit'"></div>
+                                    <div class="fw-bold text-primary" x-text="formatNumber(item.price * item.qty)"></div>
+                                </div>
                             </div>
+                            <template x-if="item.category_name && item.category_name.includes('แก๊ส')">
+                                <div class="mt-2 pt-2 border-top">
+                                    <select x-model="item.gas_status" class="form-select form-select-sm bg-light border-0 text-primary fw-bold" style="font-size: 0.85rem;">
+                                        <option value="">- สถานะถัง -</option>
+                                        <option value="refill">🔄 หมุนเวียน</option>
+                                        <option value="new">🆕 ถังใหม่</option>
+                                        <option value="deposit">📦 ฝากเติม</option>
+                                        <option value="borrow">🤝 ยืมถัง</option>
+                                    </select>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    <div x-show="cart.length === 0" class="text-center py-5 text-muted d-flex flex-column align-items-center justify-content-center h-100">
+                        <i class="fas fa-shopping-basket fa-4x mb-3 opacity-25"></i>
+                        <p class="mb-0">Cart is empty</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cart Footer -->
+            <div class="bg-white border-top shadow-lg p-3 flex-shrink-0 position-relative" style="z-index: 50;">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">🚚 Delivery Fee</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" x-model="deliveryFee" class="form-control text-end fw-bold" placeholder="0">
+                            <span class="input-group-text bg-light px-2">฿</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <label class="small fw-bold text-muted mb-1">🏷️ Discount</label>
+                        <div class="input-group input-group-sm">
+                            <input type="number" x-model="discount" class="form-control text-end fw-bold text-danger" placeholder="0">
+                            <span class="input-group-text bg-light px-2">฿</span>
                         </div>
                     </div>
                 </div>
-            @empty
-                <div class="col-12 text-center py-5 text-muted">
-                    <i class="fas fa-box-open fa-3x mb-3 opacity-50"></i>
-                    <p>No products found.</p>
+                <div class="d-flex justify-content-between align-items-end mb-3 border-top pt-2">
+                    <div>
+                        <div class="small text-muted">Subtotal: <span x-text="formatNumber(grandTotal)"></span></div>
+                        <div class="fw-bold fs-5 text-dark lh-1">NET TOTAL</div>
+                    </div>
+                    <div class="text-end">
+                        <h1 class="fw-bold text-primary m-0 lh-1" x-text="formatNumber(netTotal)"></h1>
+                    </div>
                 </div>
-            @endforelse
-        </div>
-    </div>
-
-
-    <div class="col-md-4 cart-panel shadow bg-white" style="height: 100vh; display: flex; flex-direction: column;">
-        <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="m-0 fw-bold"><i class="fas fa-shopping-cart me-2"></i> Current Order</h5>
-            <span class="badge bg-white text-primary rounded-pill px-3" x-text="cart.length + ' Items'"></span>
-        </div>
-
-        <div class="cart-items p-0" style="flex-grow: 1; overflow-y: auto;">
-            <table class="table table-striped table-hover mb-0">
-                <thead class="bg-light sticky-top" style="z-index: 1;">
-                    <tr>
-                        <th class="ps-3">Item</th>
-                        <th class="text-center">Qty</th>
-                        <th class="text-end pe-3">Total</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <template x-for="(item, index) in cart" :key="item.id">
-                        <tr>
-                            <td class="align-middle ps-3">
-                                <div class="fw-bold text-truncate" style="max-width: 140px;" x-text="item.name"></div>
-                                <div class="small text-muted" x-text="formatNumber(item.price)"></div>
-                            </td>
-                            <td class="align-middle text-center">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <button class="btn btn-outline-secondary" @click="updateQty(index, -1)">-</button>
-                                    <button class="btn btn-white border disabled text-dark fw-bold" style="width: 35px;"
-                                        x-text="item.qty"></button>
-                                    <button class="btn btn-outline-secondary" @click="updateQty(index, 1)">+</button>
-                                </div>
-                            </td>
-                            <td class="align-middle text-end fw-bold pe-3" x-text="formatNumber(item.price * item.qty)">
-                            </td>
-                            <td class="align-middle text-center">
-                                <button class="btn btn-link text-danger p-0" @click="removeItem(index)">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    </template>
-                    <tr x-show="cart.length === 0">
-                        <td colspan="4" class="text-center py-5 text-muted">
-                            <i class="fas fa-shopping-basket fa-2x mb-3 opacity-50"></i><br>Select products to start
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="cart-summary bg-light p-3 border-top">
-            <div class="d-flex justify-content-between mb-2 small text-muted">
-                <span>Subtotal</span><span class="fw-bold text-dark" x-text="formatNumber(grandTotal)"></span>
+                <button class="btn btn-success w-100 py-3 fw-bold fs-5 shadow-sm text-uppercase d-flex justify-content-between px-4 align-items-center"
+                    :disabled="cart.length === 0"
+                    @click="openPaymentModal()"> <!-- ✅ เรียกฟังก์ชันเปิด Modal ใน posSystem -->
+                    <span><i class="fas fa-wallet me-2"></i> PAY NOW</span>
+                    <span class="bg-white text-success px-2 rounded fs-6" x-text="formatNumber(netTotal)"></span>
+                </button>
             </div>
-            <div class="d-flex justify-content-between mb-3 small text-muted">
-                <span>Tax (0%)</span><span class="fw-bold text-dark">0.00</span>
-            </div>
-            <div class="d-flex justify-content-between mb-4 pb-3 border-bottom">
-                <h4 class="fw-bold text-dark">Total</h4>
-                <h4 class="fw-bold text-primary" x-text="formatNumber(grandTotal)"></h4>
-            </div>
-            <button
-                class="btn btn-success w-100 py-3 fw-bold fs-5 shadow-sm text-uppercase d-flex justify-content-between px-4"
-                :disabled="cart.length === 0" @click="$dispatch('open-checkout-modal', { total: grandTotal })">
-                <span>Checkout</span><span x-text="formatNumber(grandTotal)"></span>
-            </button>
         </div>
-    </div>
 
-    <div x-data="{
-        showModal: false,
-        receivedAmount: '',
-        change: 0,
-        currentTotal: 0,
-        paymentMethod: 'cash',
-        customerId: '', // ✅ 1. เพิ่มตัวแปรเก็บ ID ลูกค้า
+        <!-- ================= PAYMENT MODAL (รวมใน posSystem ไม่แยก x-data) ================= -->
+        <div class="position-fixed top-0 start-0 w-100 h-100"
+             style="z-index: 2000; display: none;"
+             x-show="showModal" x-cloak>
 
-        openCheckout(detail) {
-            this.showModal = true;
-            this.receivedAmount = '';
-            this.change = 0;
-            this.paymentMethod = 'cash';
-            this.customerId = ''; // Reset ลูกค้าเป็นทั่วไปทุกครั้ง
-            this.currentTotal = detail.total;
+            <!-- Backdrop -->
+            <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75"
+                 x-transition.opacity @click="showModal = false"></div>
 
-            setTimeout(() => {
-                let input = document.getElementById('receivedInput');
-                if (input) input.focus();
-            }, 100);
-        },
+            <!-- Modal Content -->
+            <div class="position-relative w-100 h-100 d-flex align-items-center justify-content-center p-3" style="pointer-events: none;">
+                <div class="bg-white rounded-3 shadow-lg w-100 overflow-hidden"
+                     style="max-width: 500px; pointer-events: auto;"
+                     x-transition.scale.origin.center>
 
-        calculateChange() {
-            let received = parseFloat(this.receivedAmount) || 0;
-            this.change = received - this.currentTotal;
-        },
-
-        confirmPayment() {
-            let received = parseFloat(this.receivedAmount) || 0;
-            let total = this.currentTotal;
-
-            if (this.paymentMethod !== 'unpaid' && received < total) {
-                alert('Amount received is not enough!');
-                return;
-            }
-
-            // ✅ 3. ส่ง customerId (หรือ null) ไป Backend ตัวสุดท้าย
-            $wire.checkout(this.cart, total, received, this.paymentMethod, this.customerId || null)
-                .then(() => {
-                    this.showModal = false;
-                })
-                .catch(err => {
-                    console.error(err);
-                    this.showModal = false;
-                    alert('Something went wrong. Please try again.');
-                });
-        }
-    }" @open-checkout-modal.window="openCheckout($event.detail)" class="position-relative"
-        style="z-index: 2000;">
-
-        <div x-show="showModal" class="modal fade" :class="{ 'show d-block': showModal }"
-            style="background: rgba(0,0,0,0.6); display: none;" x-transition.opacity>
-
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content shadow-lg border-0">
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title"><i class="fas fa-money-bill-wave me-2"></i> Payment</h5>
+                    <div class="modal-header bg-success text-white p-3 d-flex justify-content-between align-items-center">
+                        <h5 class="m-0 fw-bold"><i class="fas fa-money-check-alt me-2"></i>Checkout</h5>
                         <button type="button" class="btn-close btn-close-white" @click="showModal = false"></button>
                     </div>
 
-                    <div class="modal-body text-center p-4">
-                        <h3 class="text-muted mb-2">Total Amount</h3>
-                        <h1 class="fw-bold text-success display-4 mb-4" x-text="formatNumber(currentTotal)"></h1>
-
-                        <div class="form-group mb-3 text-start">
-                            <label class="fw-bold mb-1"><i class="fas fa-user me-1"></i> Customer (ลูกค้า)</label>
-                            <select x-model="customerId" class="form-select form-select-lg">
-                                <option value="">👤 General Customer (ลูกค้าทั่วไป)</option>
-                                @foreach ($customers as $c)
-                                    <option value="{{ $c->id }}">
-                                        {{ $c->name }} {{ $c->phone ? '(' . $c->phone . ')' : '' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                    <div class="modal-body p-4 bg-light">
+                        <!-- Top: Total -->
+                        <div class="text-center mb-3 bg-white p-3 rounded shadow-sm border border-success border-opacity-25">
+                            <small class="text-muted text-uppercase fw-bold">Amount to Pay</small>
+                            <h1 class="display-4 fw-bold text-success m-0" x-text="formatNumber(netTotal)"></h1>
                         </div>
 
-                        <div class="form-group mb-3 text-start">
-                            <label class="fw-bold mb-1">Payment Method</label>
-                            <select x-model="paymentMethod" class="form-select form-select-lg fw-bold">
-                                <option value="cash">💵 เงินสด (Cash)</option>
-                                <option value="transfer">🏦 โอนธนาคาร (Bank Transfer)</option>
-                                <option value="half_half">🏛️ โครงการคนละครึ่ง</option>
-                                <option value="unpaid">📝 ค้างชำระ (Unpaid/Credit)</option>
-                            </select>
+                        <!-- ✅ Date Picker (Transaction Date) -->
+                        <div class="mb-3">
+                            <label class="fw-bold small text-muted">Transaction Date (วันที่ขาย)</label>
+                            <input type="datetime-local" x-model="transactionDate" class="form-control fw-bold border-secondary">
                         </div>
 
-                        <div class="form-group mb-4 text-start">
-                            <label class="fw-bold mb-1">Received Amount</label>
-                            <input type="number" id="receivedInput"
-                                class="form-control form-control-lg text-center fw-bold fs-3" x-model="receivedAmount"
-                                @input="calculateChange()" @keydown.enter="confirmPayment()" placeholder="0.00">
+                        <div class="row g-3 mb-3">
+                            <!-- Searchable Customer -->
+                            <div class="col-12 position-relative">
+                                <label class="fw-bold small text-muted">Customer (ค้นหาลูกค้า)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" placeholder="พิมพ์ชื่อ หรือ เบอร์โทร..."
+                                           x-model="customerSearch" @input="searchCustomer()">
+                                    <button class="btn btn-outline-secondary" type="button" x-show="customerId" @click="resetCustomer()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="list-group position-absolute w-100 shadow-lg" style="z-index: 3000; max-height: 200px; overflow-y: auto;"
+                                     x-show="showCustomerDropdown">
+                                    <template x-for="c in filteredCustomers" :key="c.id">
+                                        <button type="button" class="list-group-item list-group-item-action" @click="selectCustomer(c)">
+                                            <span class="fw-bold" x-text="c.name"></span>
+                                            <span class="small text-muted" x-show="c.phone" x-text="' (' + c.phone + ')'"></span>
+                                        </button>
+                                    </template>
+                                    <div class="list-group-item text-muted text-center" x-show="filteredCustomers.length === 0">ไม่พบข้อมูล</div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="col-12">
+                                <label class="fw-bold small text-muted">Payment Method</label>
+                                <div class="d-flex gap-2">
+                                    <button class="btn flex-fill py-2" :class="paymentMethod === 'cash' ? 'btn-success shadow' : 'btn-outline-secondary bg-white'" @click="paymentMethod = 'cash'"><i class="fas fa-money-bill me-1"></i> Cash</button>
+                                    <button class="btn flex-fill py-2" :class="paymentMethod === 'transfer' ? 'btn-info text-white shadow' : 'btn-outline-secondary bg-white'" @click="paymentMethod = 'transfer'"><i class="fas fa-university me-1"></i> Transfer</button>
+                                    <button class="btn flex-fill py-2" :class="paymentMethod === 'unpaid' ? 'btn-warning text-dark shadow' : 'btn-outline-secondary bg-white'" @click="paymentMethod = 'unpaid'"><i class="fas fa-clock me-1"></i> Credit</button>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="alert alert-light border d-flex justify-content-between px-4 py-3"
-                            x-show="paymentMethod === 'cash'">
-                            <span class="fs-5 text-muted">Change:</span>
-                            <span class="fs-4 fw-bold" :class="change < 0 ? 'text-danger' : 'text-success'"
-                                x-text="formatNumber(change)"></span>
+                        <!-- Amount Input -->
+                        <div class="mb-3" x-show="paymentMethod !== 'unpaid'">
+                            <label class="fw-bold small text-muted">Received Amount</label>
+                            <input type="number" id="receivedInput" class="form-control form-control-lg text-center fw-bold fs-1 text-success border-success" x-model="receivedAmount" placeholder="0.00" @keydown.enter="submitPayment()">
+                        </div>
+
+                        <!-- Change -->
+                        <div class="alert alert-warning d-flex justify-content-between align-items-center mb-0 shadow-sm" x-show="paymentMethod === 'cash'">
+                            <span class="fw-bold text-uppercase">Change:</span>
+                            <span class="fs-2 fw-bold" :class="changeAmount < 0 ? 'text-danger' : 'text-dark'" x-text="formatNumber(Math.max(0, changeAmount))"></span>
                         </div>
                     </div>
 
-                    <div class="modal-footer justify-content-center p-3">
-                        <button class="btn btn-secondary btn-lg px-4" @click="showModal = false">Cancel</button>
-                        <button class="btn btn-success btn-lg px-5 fw-bold" @click="confirmPayment()"
-                            :disabled="paymentMethod !== 'unpaid' && (!receivedAmount || change < 0)">
+                    <div class="modal-footer p-3 bg-white border-top">
+                        <button class="btn btn-secondary px-4 btn-lg" @click="showModal = false">Cancel</button>
+                        <button class="btn btn-success px-5 fw-bold btn-lg shadow" @click="submitPayment()" :disabled="paymentMethod !== 'unpaid' && changeAmount < 0">
                             CONFIRM PAYMENT
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="printable-area" class="d-none d-print-block bg-white text-dark">
-        @if ($lastTransaction)
-            <div class="p-3" style="width: 100mm; min-height: 140mm; font-family: 'Sarabun', sans-serif;">
-
-                <div class="text-center mb-3">
-                    <p class="fw-bold">บิลเงินสด</p>
-                    <p class="fw-bold mb-0">ร้านพีแก๊ส</p>
-                    <p class="small mb-0">609 ม.2 ต.ขามทะเลสอ อ.ขามทะเลสอ นครราชสีมา 30280</p>
-                </div>
-
-                <div class="row small mb-2">
-                    <div class="col-12">
-                        <strong>เลขที่:</strong> {{ $lastTransaction->reference_no }}<br>
-                        <strong>วันที่:</strong> {{ $lastTransaction->created_at->format('d/m/Y H:i') }}<br>
-                        <strong>พนักงานขาย:</strong> {{ $lastTransaction->user->name ?? '-' }}<br>
-                        <strong>ลูกค้า:</strong> {{ $lastTransaction->customer->name ?? 'General' }}
+        <!-- Hidden Print Area -->
+        <div id="printable-area" class="d-none d-print-block">
+            @if ($lastTransaction)
+                <div class="p-3" style="width: 80mm; font-family: 'Sarabun', sans-serif; color: black;">
+                    <div class="text-center mb-2">
+                        <h4 class="fw-bold m-0">ร้านพีแก๊ส</h4>
+                        <p class="small mb-0">โทร: 0659244463</p>
+                        <p class="small mb-0">--------------------------------</p>
                     </div>
+                    <div class="mb-2" style="font-size: 12px;">
+                        <div><strong>เลขที่:</strong> {{ $lastTransaction->reference_no }}</div>
+                        <div><strong>วันที่:</strong> {{ $lastTransaction->transaction_date }}</div>
+                        <div><strong>ชื่อลูกค้า:</strong> {{ $lastTransaction->customer->name ?? 'ลูกค้าทั่วไป' }}</div>
+                    </div>
+                    <table class="table table-sm table-borderless mb-2" style="font-size: 12px;">
+                        <thead><tr style="border-bottom: 1px dashed black;"><th>Item</th><th class="text-center">Qty</th><th class="text-end">Total</th></tr></thead>
+                        <tbody>
+                            @foreach ($lastTransaction->details as $detail)
+                                <tr>
+                                    <td>
+                                        {{ $detail->product_name }}
+                                        @if ($detail->gas_status) <br><small class="text-muted">({{ $detail->gas_status }})</small> @endif
+                                    </td>
+                                    <td class="text-center">{{ $detail->quantity }}</td>
+                                    <td class="text-end">{{ number_format($detail->total_price, 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot style="border-top: 1px dashed black;">
+                            @if ($lastTransaction->delivery_fee > 0) <tr><td colspan="2" class="text-end">ค่าขนส่ง:</td><td class="text-end">{{ number_format($lastTransaction->delivery_fee, 2) }}</td></tr> @endif
+                            @if ($lastTransaction->discount_amount > 0) <tr><td colspan="2" class="text-end">ส่วนลด:</td><td class="text-end">-{{ number_format($lastTransaction->discount_amount, 2) }}</td></tr> @endif
+                            <tr class="fw-bold"><td colspan="2" class="text-end">NET TOTAL:</td><td class="text-end">{{ number_format($lastTransaction->total_amount, 2) }}</td></tr>
+                            <tr><td colspan="2" class="text-end">Received:</td><td class="text-end">{{ number_format($lastTransaction->received_amount, 2) }}</td></tr>
+                            <tr><td colspan="2" class="text-end">Change:</td><td class="text-end">{{ number_format($lastTransaction->change_amount, 2) }}</td></tr>
+                        </tfoot>
+                    </table>
+                    <div class="text-center mt-3 small"><p class="mb-0">ขอบคุณครับ</p></div>
                 </div>
+            @endif
+        </div>
 
-                <table class="table table-sm border-white small mb-2">
-                    <thead>
-                        <tr class="border-bottom border-dark">
-                            <th>สินค้า</th>
-                            <th class="text-center">จำนวน</th>
-                            <th class="text-end">ราคา</th>
-                            <th class="text-end">ยอดเงิน</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($lastTransaction->details as $item)
-                            <tr>
-                                <td>{{ $item->product_name }}</td>
-                                <td class="text-center">{{ $item->quantity }}</td>
-                                <td class="text-end">{{ number_format($item->price, 2) }}</td>
-                                <td class="text-end">{{ number_format($item->total_price, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-
-                <hr class="border-dark opacity-100 my-2">
-
-                <div class="d-flex justify-content-between fw-bold">
-                    <span>รวมทั้งหมด</span>
-                    <span class="fs-5">{{ number_format($lastTransaction->total_amount, 2) }}</span>
-                </div>
-
-            </div>
-        @endif
     </div>
 
-    <style>
-        @media print {
-
-            /* 1. ตั้งค่าหน้ากระดาษเป็น A6 */
-            @page {
-                size: A6;
-                /* หรือกำหนดเป็น mm: size: 105mm 148mm; */
-                margin: 0mm;
-            }
-
-            /* 2. ซ่อนทุกอย่างในหน้าเว็บ */
-            body * {
-                visibility: hidden;
-                margin: 0;
-                padding: 0;
-            }
-
-            /* 3. แสดงเฉพาะใบเสร็จ และจัดตำแหน่ง */
-            #printable-area,
-            #printable-area * {
-                visibility: visible;
-            }
-
-            #printable-area {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 5mm;
-            }
-
-            /* ซ่อน Header/Footer ของ Browser (บาง Browser อาจต้องตั้งค่าเอง) */
-            header,
-            footer {
-                display: none !important;
-            }
-        }
-    </style>
-
+    <!-- Script Logic (Centralized) -->
     <script>
         function formatNumber(num) {
-            if (num === undefined || num === null) return '0.00';
-            return new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(num);
+            return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num || 0);
         }
 
-        function posSystem() {
+        function posSystem(initialCustomers) {
             return {
                 cart: JSON.parse(localStorage.getItem('pos_cart')) || [],
+                deliveryFee: 0,
+                discount: 0,
+
+                // Modal State (รวมศูนย์)
+                showModal: false,
+                receivedAmount: '',
+                paymentMethod: 'cash',
+                transactionDate: '',
+
+                // Customer State
+                customers: initialCustomers,
+                customerSearch: '',
+                customerId: '',
+                filteredCustomers: [],
+                showCustomerDropdown: false,
+
+                // Computed
+                get grandTotal() { return this.cart.reduce((t, i) => t + (i.price * i.qty), 0); },
+                get netTotal() { return Math.max(0, this.grandTotal + parseFloat(this.deliveryFee || 0) - parseFloat(this.discount || 0)); },
+                get changeAmount() { return (parseFloat(this.receivedAmount) || 0) - this.netTotal; },
+
                 init() {
-                    this.$watch('cart', (value) => {
-                        localStorage.setItem('pos_cart', JSON.stringify(value));
-                    });
-                    Livewire.on('transaction-completed', () => {
+                    this.$watch('cart', val => localStorage.setItem('pos_cart', JSON.stringify(val)));
+                },
+
+                // Cart Actions
+                addToCart(id, name, price, category_name) {
+                    let item = this.cart.find(i => i.id === id);
+                    if (item) { item.qty++; }
+                    else { this.cart.push({ id, name, price, qty: 1, category_name, gas_status: '' }); }
+                },
+                updateQty(index, amt) {
+                    if (this.cart[index].qty + amt <= 0) this.removeItem(index);
+                    else this.cart[index].qty += amt;
+                },
+                removeItem(index) { this.cart.splice(index, 1); },
+                clearCart() { this.cart = []; this.deliveryFee = 0; this.discount = 0; },
+
+                // Payment Modal Logic
+                openPaymentModal() {
+                    this.showModal = true;
+                    this.receivedAmount = '';
+                    this.paymentMethod = 'cash';
+                    this.resetCustomer();
+
+                    // Set Date
+                    let now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    this.transactionDate = now.toISOString().slice(0, 16);
+
+                    setTimeout(() => document.getElementById('receivedInput')?.focus(), 100);
+                },
+
+                // Customer Logic
+                searchCustomer() {
+                    if (this.customerSearch === '') {
+                        this.showCustomerDropdown = false;
+                        return;
+                    }
+                    this.showCustomerDropdown = true;
+                    this.filteredCustomers = this.customers.filter(c =>
+                        c.name.toLowerCase().includes(this.customerSearch.toLowerCase()) ||
+                        (c.phone && c.phone.includes(this.customerSearch))
+                    );
+                },
+                selectCustomer(c) {
+                    this.customerId = c.id;
+                    this.customerSearch = c.name;
+                    this.showCustomerDropdown = false;
+                },
+                resetCustomer() {
+                    this.customerId = '';
+                    this.customerSearch = '';
+                    this.showCustomerDropdown = false;
+                },
+
+                // Submit Logic
+                submitPayment() {
+                    let received = parseFloat(this.receivedAmount) || 0;
+                    if (this.paymentMethod !== 'unpaid' && received < this.netTotal) {
+                        alert('ยอดเงินไม่พอ (Insufficient Amount)');
+                        return;
+                    }
+
+                    // ✅ เรียก Livewire โดยใช้ตัวแปรใน Scope เดียวกันทั้งหมด
+                    // สังเกต: เราใช้ this.cart, this.deliveryFee, this.transactionDate ได้เลย
+                    Livewire.dispatch('show-loading'); // Optional: ถ้ามี loading
+
+                    @this.checkout(
+                        this.cart,
+                        this.grandTotal,
+                        received,
+                        this.paymentMethod,
+                        this.customerId || null,
+                        this.deliveryFee,
+                        this.discount,
+                        '', // note
+                        this.transactionDate // ✅ ส่งวันที่ไป
+                    ).then(() => {
+                        this.showModal = false;
                         this.clearCart();
+                    }).catch(err => {
+                        console.error(err);
+                        alert('Error: ' + err);
                     });
-                },
-                addToCart(id, name, price) {
-                    let existingItem = this.cart.find(item => item.id === id);
-                    if (existingItem) {
-                        existingItem.qty++;
-                    } else {
-                        this.cart.push({
-                            id,
-                            name,
-                            price: parseFloat(price),
-                            qty: 1
-                        });
-                    }
-                    this.playBeep();
-                },
-                updateQty(index, amount) {
-                    if (this.cart[index].qty + amount <= 0) {
-                        this.removeItem(index);
-                    } else {
-                        this.cart[index].qty += amount;
-                    }
-                },
-                removeItem(index) {
-                    this.cart.splice(index, 1);
-                },
-                get grandTotal() {
-                    return this.cart.reduce((total, item) => total + (item.price * item.qty), 0);
-                },
-                clearCart() {
-                    this.cart = [];
-                },
-                playBeep() {
-                    /* Beep code */
                 }
             }
         }
 
         document.addEventListener('livewire:initialized', () => {
-
-            // console.log('Livewire Loaded!'); // ✅ 1. ดูว่าบรรทัดนี้ขึ้นใน Console ไหม
-
-            Livewire.on('print-receipt', () => {
-                console.log('Received Print Event!'); // ✅ 2. ถ้ากดจ่ายเงิน บรรทัดนี้ต้องขึ้น
-
-                setTimeout(() => {
-                    window.print();
-                }, 1000); // เพิ่มเวลาเป็น 1 วินาที เผื่อเครื่องช้า
-            });
-
+            Livewire.on('print-receipt', () => { setTimeout(() => window.print(), 500); });
         });
     </script>
+
+    <!-- Styles -->
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .card:hover { transform: translateY(-3px); }
+        @media print {
+            @page { size: 80mm auto; margin: 0; }
+            body * { visibility: hidden; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
 </div>

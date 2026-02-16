@@ -2,14 +2,18 @@
 
 namespace App\Livewire\Auth;
 
+use App\Services\Auth\LoginService;
+use App\Services\Auth\ShopRoutingService;
 use App\Services\LogService;
 use Exception;
-use Livewire\Component;
-use Illuminate\Support\Str;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Component;
 
 #[Layout('components.layouts.guest')]
 #[Title('Login')]
@@ -17,7 +21,15 @@ class Login extends Component
 {
     public $email = '';
     public $password = '';
-    public $remember = false;
+
+    protected LoginService $loginService;
+    protected ShopRoutingService $shopRoutingService;
+
+    public function boot(LoginService $loginService, ShopRoutingService $shopRoutingService)
+    {
+        $this->loginService = $loginService;
+        $this->shopRoutingService = $shopRoutingService;
+    }
 
     public function login()
     {
@@ -27,59 +39,56 @@ class Login extends Component
             'password' => 'required',
         ]);
 
-        try {
-            // 2. Rate Limiting (ป้องกันการเดารหัสผ่านรัวๆ)
-            $throttleKey = Str::lower($this->email) . '|' . request()->ip();
-            if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-                $seconds = RateLimiter::availableIn($throttleKey);
-                $this->addError('email', "Too many login attempts. Please try again in $seconds seconds.");
+        try
+        {
+            // 2. เรียกใช้ Service เพื่อ Authenticate (LoginService จะจัดการ RateLimit และ Auth::attempt)
+            // ส่ง $this->remember ไปด้วยถ้ามี
+            $this->loginService->authenticate($this->email, $this->password);
 
-                LogService::warning('Login Brute Force Attempt', [
-                    'email_attempt' => $this->email,
+            // 3. ดึง User ที่เพิ่ง Login ผ่าน
+            $user = Auth::user();
+
+            // 📝 Log ดูค่า Role จริงๆ ใน Database (เพื่อ Debug)
+            Log::info("Login Success: {$user->email} | DB Role: " . ($user->role ?? 'null'));
+
+            if ($user->role === 'admin')
+            {
+                session([
+                    'current_role' => 'admin',
+                    'is_admin' => true
                 ]);
+                session()->save(); // บังคับเขียน Session เดี๋ยวนี้
+                Log::info("Session Forced: current_role = admin");
+            }
 
+            // 4. เรียกใช้ Service เพื่อหาเส้นทาง (Dashboard หรือ POS หรือ Select Shop)
+            $redirectUrl = $this->shopRoutingService->determineRedirectPath($user);
+
+            // 5. กรณีพิเศษ: ไม่มีร้านสังกัด (Service อาจจะส่ง error param มา)
+            if (str_contains($redirectUrl, 'error=no_shop_assigned'))
+            {
+                $this->addError('email', 'บัญชีของคุณยังไม่มีร้านค้าที่สังกัด กรุณาติดต่อผู้ดูแลระบบ');
                 return;
             }
 
-            // 3. Attempt Login
-            if (!Auth::attempt(['email' => $this->email, 'password' => $this->password, 'is_active' => true], $this->remember)) {
-                RateLimiter::hit($throttleKey); // นับจำนวนครั้งที่ผิด
-                $this->addError('email', 'These credentials do not match our records.');
+            // 6. Redirect ไปยังหน้าที่เหมาะสม
+            return redirect()->to($redirectUrl);
+        }
+        catch (ValidationException $e)
+        {
+            // จับ Error จาก Validation (เช่น รหัสผิด หรือ Rate Limit) ที่โยนมาจาก Service
+            // นำ Error message มาใส่ใน Field email เพื่อแสดงผลหน้า Blade
+            $this->addError('email', $e->getMessage());
 
-                LogService::warning('Login Failed: Invalid Credentials', [
-                    'email_attempt' => $this->email
-                ]);
-                return;
-            }
-
-            LogService::info('User Login Success', [
-                'role' => auth()->user()->role
-            ]);
-
-            // 4. Login Success -> Clear Rate Limiter
-            RateLimiter::clear($throttleKey);
-            session()->regenerate(); // ป้องกัน Session Fixation Attack
-
-            // 5. Redirect based on Role
-            return $this->redirectBasedOnRole();
-        } catch (Exception $e) {
+        }
+        catch (Exception $e)
+        {
             LogService::error('Login System Error', $e, [
                 'email_attempt' => $this->email
             ]);
 
-            $this->addError('email', 'System Error');
+            $this->addError('email', 'เกิดข้อผิดพลาดของระบบ กรุณาลองใหม่ภายหลัง');
         }
-    }
-
-    private function redirectBasedOnRole()
-    {
-        $user = Auth::user();
-
-        if ($user->role === 'admin') {
-            return redirect()->intended('/dashboard');
-        }
-
-        return redirect()->intended('/pos');
     }
 
     public function render()

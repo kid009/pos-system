@@ -12,9 +12,11 @@ class TransactionDetail extends Model
         'transaction_id',
         'product_id',
         'product_name',
+        'gas_status', // ✅ เพิ่ม
         'price',
+        'cost',
         'quantity',
-        'total_price',
+        'total_price'
     ];
 
     protected $guarded = []; // อนุญาตให้ create ข้อมูลได้ทุกช่อง

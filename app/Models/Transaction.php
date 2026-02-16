@@ -14,10 +14,17 @@ class Transaction extends Model
         'user_id',
         'customer_id',
         'total_amount',
+        'delivery_fee',
+        'discount_amount',
         'received_amount',
         'change_amount',
         'payment_method',
         'status',
+        'note',
+        'transaction_date',
+        'shop_id',
+        'created_by',
+        'updated_by',
     ];
 
     protected $guarded = []; // อนุญาตให้ create ข้อมูลได้ทุกช่อง
@@ -35,5 +42,13 @@ class Transaction extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+     /**
+     * ความสัมพันธ์: บิลนี้เป็นของร้านไหน (BelongsTo)
+     */
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class);
     }
 }

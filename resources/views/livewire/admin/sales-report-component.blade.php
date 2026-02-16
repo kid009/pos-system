@@ -17,16 +17,16 @@
         <div class="card-body bg-light p-4 rounded">
             <div class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <label class="fw-bold mb-1 text-muted">Start Date (จากวันที่)</label>
+                    <label class="fw-bold mb-1 text-muted">จากวันที่</label>
                     <input type="date" wire:model.live="start_date" class="form-control form-control-lg shadow-sm">
                 </div>
                 <div class="col-md-4">
-                    <label class="fw-bold mb-1 text-muted">End Date (ถึงวันที่)</label>
+                    <label class="fw-bold mb-1 text-muted">ถึงวันที่ </label>
                     <input type="date" wire:model.live="end_date" class="form-control form-control-lg shadow-sm">
                 </div>
                 <div class="col-md-4 text-md-end">
                     <div class="p-2 bg-white rounded shadow-sm border d-inline-block px-4">
-                        <small class="text-muted d-block text-uppercase fw-bold">Total Sales in Period</small>
+                        <small class="text-muted d-block text-uppercase fw-bold">ยอดขายรวม</small>
                         <h3 class="mb-0 text-success fw-bold">{{ number_format($totalSales, 2) }} ฿</h3>
                     </div>
                 </div>
@@ -40,27 +40,26 @@
                 <table class="table table-hover align-middle mb-0 text-center">
                     <thead class="bg-primary text-white">
                         <tr>
-                            <th class="py-3 ps-4 text-start">Date / Time</th>
-                            <th class="py-3">Receipt No.</th>
-                            <th class="py-3">Cashier (User)</th>
-                            <th class="py-3">Customer</th>
-                            <th class="py-3">Payment</th>
-                            <th class="py-3 text-end pe-4">Total Amount</th>
+                            <th class="py-3 ps-4 text-start">วันที่ขาย</th>
+                            <th class="py-3">เลขที่ใบเสร็จ</th>
+                            {{-- <th class="py-3">Cashier (User)</th> --}}
+                            <th class="py-3">ลูกค้า</th>
+                            <th class="py-3">วิธีการชำระเงิน</th>
+                            <th class="py-3 text-end pe-4">ยอดรวม</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($transactions as $tx)
                         <tr>
                             <td class="ps-4 text-start text-muted">
-                                {{ $tx->created_at->format('d M Y') }} <br>
-                                <small>{{ $tx->created_at->format('H:i:s') }}</small>
+                                {{ \Carbon\Carbon::parse($tx->transaction_date)->format('d/m/Y') }} <br>
                             </td>
                             <td class="fw-bold text-primary">{{ $tx->reference_no }}</td>
-                            <td>
+                            {{-- <td>
                                 <span class="badge bg-light text-dark border">
                                     <i class="fas fa-user-tag me-1"></i> {{ $tx->user->name ?? 'Unknown' }}
                                 </span>
-                            </td>
+                            </td> --}}
                             <td>
                                 @if($tx->customer)
                                     <span class="text-dark fw-bold">{{ $tx->customer->name }}</span>
@@ -87,12 +86,12 @@
                         @endforelse
                     </tbody>
 
-                    <tfoot class="bg-light fw-bold">
+                    {{-- <tfoot class="bg-light fw-bold">
                         <tr>
-                            <td colspan="5" class="text-end py-3 text-uppercase text-muted">Total Sum:</td>
+                            <td colspan="5" class="text-end py-3 text-uppercase text-muted">ยอดขายรวม:</td>
                             <td class="text-end pe-4 py-3 fs-4 text-success">{{ number_format($totalSales, 2) }}</td>
                         </tr>
-                    </tfoot>
+                    </tfoot> --}}
                 </table>
             </div>
         </div>

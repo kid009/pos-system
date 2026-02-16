@@ -1,96 +1,136 @@
-<div class="container-fluid py-4">
+<div>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark mb-0"><i class="fas fa-chart-line me-2"></i>Dashboard Overview</h2>
-            <p class="text-muted mb-0">Business Snapshot & Analytics</p>
-        </div>
-        <a href="/pos" class="btn btn-primary fw-bold px-4 py-2 shadow-sm">
-            <i class="fas fa-cash-register me-2"></i> Go to POS
-        </a>
+        <h3 class="text-primary fw-bold"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h3>
+        <span class="text-muted">Overview for {{ date('F Y') }}</span>
     </div>
 
+    <!-- ROW 1: Financial Cards -->
     <div class="row g-3 mb-4">
+        <!-- ยอดขายวันนี้ -->
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 bg-primary text-white overflow-hidden">
-                <div class="card-body p-3">
-                    <h6 class="text-uppercase mb-2 opacity-75 fw-bold font-monospace">Today's Sales</h6>
-                    <h3 class="fw-bold mb-0">{{ number_format($todaySales, 2) }}</h3>
-                    <small class="opacity-75"><i class="fas fa-calendar-day me-1"></i> {{ date('d M') }}</small>
+            <div class="card shadow-sm border-start border-primary border-4 h-100">
+                <div class="card-body">
+                    <div class="text-uppercase small fw-bold text-primary mb-1">Today's Sales (Cash In)</div>
+                    <div class="h3 mb-0 fw-bold text-gray-800">{{ number_format($todaySales, 2) }}</div>
                 </div>
             </div>
         </div>
 
+        <!-- ยอดขายเดือนนี้ -->
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 bg-success text-white overflow-hidden">
-                <div class="card-body p-3">
-                    <h6 class="text-uppercase mb-2 opacity-75 fw-bold font-monospace">Monthly Sales</h6>
-                    <h3 class="fw-bold mb-0">{{ number_format($monthlySales, 2) }}</h3>
-                    <small class="opacity-75"><i class="fas fa-calendar-alt me-1"></i> This Month</small>
+            <div class="card shadow-sm border-start border-info border-4 h-100">
+                <div class="card-body">
+                    <div class="text-uppercase small fw-bold text-info mb-1">Monthly Sales (Total)</div>
+                    <div class="h3 mb-0 fw-bold text-gray-800">{{ number_format($monthlySales, 2) }}</div>
                 </div>
             </div>
         </div>
 
+        <!-- ✅ กำไรขั้นต้น (Gross Profit) -->
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 bg-info text-white overflow-hidden" style="background: linear-gradient(45deg, #0dcaf0, #0aa2c0);">
-                <div class="card-body p-3">
-                    <h6 class="text-uppercase mb-2 opacity-75 fw-bold font-monospace">Net Profit</h6>
-                    <h3 class="fw-bold mb-0">{{ number_format($totalProfit, 2) }}</h3>
-                    <small class="opacity-75"><i class="fas fa-piggy-bank me-1"></i> All Time</small>
+            <div class="card shadow-sm border-start border-success border-4 h-100">
+                <div class="card-body">
+                    <div class="text-uppercase small fw-bold text-success mb-1">Gross Profit (Month)</div>
+                    <div class="h3 mb-0 fw-bold text-gray-800">
+                        {{ number_format($totalProfit, 2) }}
+                        <small class="fs-6 text-muted font-weight-normal">บาท</small>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- ✅ ลูกหนี้ค้างชำระ (Account Receivable) -->
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100 bg-indigo text-white overflow-hidden" style="background-color: #6610f2;">
-                <div class="card-body p-3">
-                    <h6 class="text-uppercase mb-2 opacity-75 fw-bold font-monospace">Avg. Bill (AOV)</h6>
-                    <h3 class="fw-bold mb-0">{{ number_format($aov, 2) }}</h3>
-                    <small class="opacity-75"><i class="fas fa-receipt me-1"></i> Per Transaction</small>
+            <div class="card shadow-sm border-start border-danger border-4 h-100">
+                <div class="card-body">
+                    <div class="text-uppercase small fw-bold text-danger mb-1">Unpaid / Credit (Total)</div>
+                    <div class="h3 mb-0 fw-bold text-danger">
+                        {{ number_format($accountReceivable, 2) }}
+                        <small class="fs-6 text-muted font-weight-normal">บาท</small>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-chart-area me-2 text-primary"></i>Sales Trend (30 Days)</h5>
-        </div>
-        <div class="card-body">
-            <div style="height: 300px;">
-                <canvas id="salesTrendChart"></canvas>
-            </div>
-        </div>
-    </div>
+    <!-- ROW 2: Cylinder Stats & Charts -->
+    <div class="row g-3 mb-4">
 
-    <div class="row g-4">
-
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm h-100">
+        <!-- ✅ รายงานการเคลื่อนไหวถังแก๊ส -->
+        <div class="col-md-4">
+            <div class="card shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-history me-2 text-muted"></i>Recent Transactions</h5>
+                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-gas-pump me-2"></i>Cylinder Stats (Month)</h6>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                <div class="card-body">
+                    @if(count($cylinderStats) > 0)
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-sync text-info me-2"></i> หมุนเวียน (Refill)</span>
+                                <span class="badge bg-info rounded-pill fs-6">{{ number_format($cylinderStats['refill'] ?? 0) }} ถัง</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-plus-circle text-success me-2"></i> ขายถังใหม่ (New)</span>
+                                <span class="badge bg-success rounded-pill fs-6">{{ number_format($cylinderStats['new'] ?? 0) }} ถัง</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-box text-warning me-2"></i> ฝากเติม (Deposit)</span>
+                                <span class="badge bg-warning text-dark rounded-pill fs-6">{{ number_format($cylinderStats['deposit'] ?? 0) }} ถัง</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-handshake text-secondary me-2"></i> ยืมถัง (Borrow)</span>
+                                <span class="badge bg-secondary rounded-pill fs-6">{{ number_format($cylinderStats['borrow'] ?? 0) }} ถัง</span>
+                            </li>
+                        </ul>
+                    @else
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-gas-pump fa-2x mb-2 opacity-50"></i>
+                            <p>ไม่มีข้อมูลการขายแก๊สในเดือนนี้</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Chart -->
+        <div class="col-md-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-chart-area me-2"></i>Sales Trend (30 Days)</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 3: Tables (Top Products & Low Stock) -->
+    <div class="row g-3">
+        <!-- Top Products -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-success"><i class="fas fa-thumbs-up me-2"></i>Top 5 Best Sellers</h6>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
                         <thead class="bg-light">
                             <tr>
-                                <th class="ps-3">Receipt</th>
-                                <th>Time</th>
-                                <th>Total</th>
-                                <th>Method</th>
-                                <th>Status</th>
+                                <th class="ps-3">Product</th>
+                                <th class="text-end pe-3">Qty Sold</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($recentTransactions as $tx)
+                            @forelse($topProducts as $top)
                             <tr>
-                                <td class="ps-3 fw-bold text-primary">{{ $tx->reference_no }}</td>
-                                <td class="small text-muted">{{ $tx->created_at->format('d M H:i') }}</td>
-                                <td class="fw-bold">{{ number_format($tx->total_amount, 2) }}</td>
-                                <td><span class="badge bg-light text-dark border">{{ ucfirst($tx->payment_method) }}</span></td>
-                                <td><span class="badge bg-success bg-opacity-10 text-success">{{ $tx->status }}</span></td>
+                                <td class="ps-3">{{ $top->product_name }}</td>
+                                <td class="text-end pe-3 fw-bold">{{ $top->total_qty }}</td>
                             </tr>
                             @empty
-                            <tr><td colspan="5" class="text-center py-4 text-muted">No data available.</td></tr>
+                            <tr>
+                                <td colspan="2" class="text-center py-3 text-muted">No sales data found</td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -98,89 +138,90 @@
             </div>
         </div>
 
-        <div class="col-lg-5">
-
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-danger text-white py-2 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert</h6>
-                    <span class="badge bg-white text-danger">{{ $lowStockItems->count() }} Items</span>
-                </div>
-                <div class="list-group list-group-flush">
-                    @forelse($lowStockItems as $item)
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-3 py-2">
-                        <div>
-                            <div class="fw-bold text-dark text-truncate" style="max-width: 200px;">{{ $item->name }}</div>
-                            <small class="text-muted">Ref: {{ $item->barcode ?? '-' }}</small>
-                        </div>
-                        <div class="text-end">
-                            <span class="badge bg-danger rounded-pill">{{ $item->stock_qty }} left</span>
-                        </div>
-                    </div>
-                    @empty
-                    <div class="p-3 text-center text-muted small"><i class="fas fa-check-circle text-success me-1"></i> Stock levels are healthy.</div>
-                    @endforelse
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm">
+        <!-- Low Stock -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-trophy me-2 text-warning"></i>Best Sellers</h5>
+                    <h6 class="m-0 fw-bold text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alert</h6>
                 </div>
-                <div class="list-group list-group-flush">
-                    @forelse($topProducts as $index => $item)
-                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                        <div class="d-flex align-items-center">
-                            <span class="badge rounded-pill bg-secondary me-3" style="width: 25px;">{{ $index + 1 }}</span>
-                            <span class="fw-bold text-dark">{{ $item->product_name }}</span>
-                        </div>
-                        <span class="badge bg-primary rounded-pill px-3">{{ number_format($item->total_qty) }} sold</span>
-                    </div>
-                    @empty
-                    <div class="text-center py-4 text-muted">No sales data yet.</div>
-                    @endforelse
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-3">Product</th>
+                                <th class="text-center">Remaining</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($lowStockItems as $low)
+                            <tr>
+                                <td class="ps-3">{{ $low->name }}</td>
+                                <td class="text-center fw-bold text-danger">{{ $low->stock_qty }}</td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="2" class="text-center py-3 text-success">
+                                    <i class="fas fa-check-circle me-1"></i> Stock levels are good!
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener('livewire:initialized', () => {
-        const ctx = document.getElementById('salesTrendChart').getContext('2d');
-        const labels = @json($chartLabels);
-        const data = @json($chartData);
+    <!-- Chart Script (วางไว้ล่างสุดและใช้ Event Listener เพื่อความชัวร์) -->
+    <script>
+        document.addEventListener('livewire:initialized', () => {
 
-        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(13, 110, 253, 0.5)');
-        gradient.addColorStop(1, 'rgba(13, 110, 253, 0.0)');
+            // เช็คว่า Chart.js โหลดมาหรือยัง ถ้ายังไม่โหลดให้ข้ามไปก่อน
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js is not loaded.');
+                return;
+            }
 
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Sales (THB)',
-                    data: data,
-                    borderColor: '#0d6efd',
-                    backgroundColor: gradient,
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: '#ffffff',
-                    pointRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
-                    x: { grid: { display: false } }
-                }
+            const ctx = document.getElementById('salesChart');
+
+            if (ctx) {
+                new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: @json($chartLabels),
+                        datasets: [{
+                            label: 'Sales (Baht)',
+                            data: @json($chartData),
+                            borderColor: '#4e73df',
+                            backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            pointBackgroundColor: '#4e73df',
+                            pointBorderColor: '#fff',
+                            pointHoverRadius: 5,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index',
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { borderDash: [2, 4], color: "#eaecf4" },
+                                ticks: { callback: function(value) { return '฿' + value.toLocaleString(); } }
+                            },
+                            x: { grid: { display: false } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
             }
         });
-    });
-</script>
+    </script>
+</div>

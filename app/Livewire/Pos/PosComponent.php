@@ -3,152 +3,155 @@
 namespace App\Livewire\Pos;
 
 use Exception;
-use App\Models\Product;
 use Livewire\Component;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+
+// Models
+use App\Models\Product;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Transaction;
-use Illuminate\Support\Str;
-use App\Services\LogService;
-use Livewire\Attributes\Title;
-use Livewire\Attributes\Layout;
 use App\Models\TransactionDetail;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
-#[Layout('components.layouts.pos')] // ✅ เรียกใช้ Layout ใหม่
+#[Layout('components.layouts.pos')]
 #[Title('Point of Sale')]
 class PosComponent extends Component
 {
-    public $category_id = null; // ต้องมีตัวแปรนี้
+    public $category_id = null;
     public $lastTransaction = null;
 
-    public function checkout($cart, $totalAmount, $receivedAmount, $paymentMethod, $customerId)
+    // ค้นหาลูกค้า
+    public $customerSearch = '';
+
+    // รับค่า checkout (มี $deliveryFee, $discount, $note, $customDate เพิ่มเข้ามา)
+    public function checkout($cart, $totalAmount, $receivedAmount, $paymentMethod, $customerId, $deliveryFee = 0, $discount = 0, $note = null, $transactionDate = null)
     {
-        // 1. Validation เบื้องต้น
+        // 1. Validation
         if (empty($cart)) {
             $this->dispatch('notify', message: 'Cart is empty!', type: 'error');
             return;
         }
 
-        // 2. เริ่ม Transaction Database
         DB::beginTransaction();
 
         try {
-            // A. วนลูปเช็คสต็อกก่อน (สำคัญมาก! ต้องเช็คก่อนสร้างบิล)
+            // A. วนลูปเช็คสต็อก
             foreach ($cart as $item) {
                 $product = Product::find($item['id']);
+                if (!$product) continue;
 
-                // ถ้าหาไม่เจอ หรือ สต็อกไม่พอ
-                if (!$product || $product->stock_qty < $item['qty']) {
+                // เงื่อนไข: ไม่เช็คสต็อกถ้าเป็น 'บริการ', 'ค่าขนส่ง'
+                // หรือถ้าเป็น 'น้ำแก๊ส' แต่เลือกสถานะ 'คืนถังเปล่า' (สมมติ)
+                $isService = $product->category && in_array($product->category->name, ['น้ำแก๊ส']);
 
-                    // 🚨 LOG CRITICAL: แจ้งเตือนสินค้าไม่พอขาย
-                    LogService::critical('POS Stock Mismatch Alert', [
-                        'product_id' => $item['id'],
-                        'product_name' => $item['name'],
-                        'req_qty' => $item['qty'],
-                        'current_stock' => $product ? $product->stock_qty : 'Not Found'
-                    ]);
-
-                    throw new Exception("สินค้า {$item['name']} มีไม่พอจำหน่าย (เหลือ {$product->stock_qty})");
+                if (!$isService && $product->stock_qty < $item['qty']) {
+                     throw new Exception("สินค้า '{$item['name']}' มีไม่พอ (เหลือ {$product->stock_qty})");
                 }
             }
 
-            // B. สร้างหัวบิล (Transaction)
+            // B. คำนวณตัวเลข
+            $finalTotal = $totalAmount + $deliveryFee - $discount;
+            $changeAmount = $receivedAmount - $finalTotal;
+            $transactionDate = $transactionDate ? Carbon::parse($transactionDate) : now();
+
+            // C. สร้าง Transaction
             $transaction = Transaction::create([
-                'reference_no' => 'INV-' . date('YmdHis') . '-' . strtoupper(Str::random(4)),
-                'user_id' => auth()->id(), // ใช้ auth()->id() สั้นกว่า
-                'customer_id' => $customerId,
-                'total_amount' => $totalAmount,
-                'received_amount' => $receivedAmount,
-                'change_amount' => $receivedAmount - $totalAmount,
+                'reference_no'   => 'INV-' . $transactionDate->format('YmdHis') . '-' . strtoupper(Str::random(4)),
+                'user_id'        => Auth::id(),
+                'customer_id'    => $customerId ?: null,
+                'total_amount'   => $finalTotal,
+                'delivery_fee'   => $deliveryFee,
+                'discount_amount'=> $discount,
+                'received_amount'=> $receivedAmount,
+                'change_amount'  => $changeAmount,
                 'payment_method' => $paymentMethod,
-                'status' => 'completed'
+                'status'         => 'completed',
+                'note'           => $note,
+                'transaction_date'=> $transactionDate,
+                'shop_id' => session('current_shop_id'),
             ]);
 
-            // C. บันทึกรายการสินค้า และ ตัดสต็อกจริง
+            // D. สร้าง Detail
             foreach ($cart as $item) {
                 $product = Product::find($item['id']);
+                if (!$product) continue;
 
                 TransactionDetail::create([
                     'transaction_id' => $transaction->id,
-                    'product_id' => $item['id'],
-                    'product_name' => $item['name'],
-                    'price' => $item['price'],
-                    'cost' => $product->cost, // เก็บต้นทุน ณ วันที่ขาย
-                    'quantity' => $item['qty'],
-                    'total_price' => $item['price'] * $item['qty'],
+                    'product_id'     => $item['id'],
+                    'product_name'   => $item['name'],
+                    'gas_status'     => $item['gas_status'] ?? null, // ✅ บันทึกสถานะถัง
+                    'price'          => $item['price'],
+                    'cost'           => $product->cost,
+                    'quantity'       => $item['qty'],
+                    'total_price'    => $item['price'] * $item['qty'],
                 ]);
 
                 // ตัดสต็อก
-                $product->decrement('stock_qty', $item['qty']);
+                $isService = $product->category && in_array($product->category->name, ['บริการ', 'ค่าขนส่ง', 'Services']);
+                if (!$isService) {
+                     $product->decrement('stock_qty', $item['qty']);
+                }
             }
 
-            DB::commit(); // ✅ บันทึกข้อมูลลงฐานข้อมูล
+            DB::commit();
 
-            // ✅ 1. เก็บข้อมูลบิลล่าสุดไว้ เพื่อเอาไปแสดงในใบเสร็จ
-            // ต้องโหลด details มาด้วย ไม่งั้นหน้าใบเสร็จจะ Loop ไม่ได้
-            $this->lastTransaction = Transaction::with(['details', 'user', 'customer'])
-                                        ->find($transaction->id);
+            // E. ส่งผลลัพธ์กลับ
+            $this->lastTransaction = Transaction::with(['details', 'user', 'customer'])->find($transaction->id);
 
-            // ✅ 2. สั่ง Event ให้ Frontend เปิดหน้าต่าง Print
             $this->dispatch('print-receipt');
-
-            // 📝 LOG INFO: บันทึกเมื่อสร้างบิลสำเร็จ
-            LogService::info("POS Transaction Created", [
-                'ref_no' => $transaction->reference_no,
-                'amount' => $totalAmount,
-                'payment_method' => $paymentMethod,
-                'items_count' => count($cart)
-            ]);
-
-            // D. แจ้งเตือนหน้าจอ
-            $this->dispatch('notify', message: 'Payment Successful! Change: ' . number_format($transaction->change_amount, 2), type: 'success');
             $this->dispatch('transaction-completed');
+
+            $this->dispatch('notify',
+                message: 'บันทึกสำเร็จ! เงินทอน: ' . number_format($changeAmount, 2),
+                type: 'success'
+            );
+
         } catch (Exception $e) {
-            DB::rollBack(); // ❌ ยกเลิกทั้งหมดถ้า error
-
-            // 📝 LOG ERROR: บันทึก Error (ส่ง Exception เข้าไปเลย Service จะแตกข้อมูลให้)
-            LogService::error("POS Checkout Failed", $e, [
-                'cart_data' => $cart, // เก็บข้อมูลตะกร้าไว้ดูว่าลูกค้าพยายามซื้ออะไร
-                'total_amount' => $totalAmount
-            ]);
-
+            DB::rollBack();
             $this->dispatch('notify', message: 'Error: ' . $e->getMessage(), type: 'error');
         }
     }
 
     public function logout()
     {
-        // 📝 LOG INFO: ใคร Logout
-        LogService::info("User Logout", [
-            'role' => auth()->user()->role ?? 'staff'
-        ]);
-
-        auth()->logout();
+        Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
-
         return redirect('/login');
     }
 
     public function render()
     {
-        $products = Product::query()->when($this->category_id, function ($q) {
-            $q->where('category_id', $this->category_id);
-        })
+        // ... (Render Logic เดิม)
+        $products = Product::query()
+            ->when($this->category_id, function ($q) {
+                $q->where('category_id', $this->category_id);
+            })
             ->where('is_active', true)
-            ->take(30)
+            ->take(50)
             ->get();
 
-        $categories = Category::all();
+        $categories = Category::orderBy('name')->get();
 
-        $customers = Customer::orderBy('name')->get();
+        $customers = Customer::query()
+            ->when($this->customerSearch, function($q) {
+                $q->where('name', 'like', '%' . $this->customerSearch . '%')
+                  ->orWhere('phone', 'like', '%' . $this->customerSearch . '%');
+            })
+            ->orderBy('name')
+            ->take(20)
+            ->get();
 
         return view('livewire.pos.pos-component', [
-            'products' => $products,
+            'products'   => $products,
             'categories' => $categories,
-            'customers' => $customers,
+            'customers'  => $customers,
         ]);
     }
 }

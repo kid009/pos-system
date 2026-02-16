@@ -1,18 +1,22 @@
 <?php
 
-use App\Livewire\Auth\Login;
-use App\Livewire\Pos\PosComponent;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-use App\Livewire\Admin\ProductComponent;
-use App\Livewire\Admin\StockInComponent;
 use App\Livewire\Admin\CategoryComponent;
 use App\Livewire\Admin\CustomerComponent;
 use App\Livewire\Admin\DashboardComponent;
-use App\Livewire\Admin\SalesReportComponent;
-use App\Livewire\Admin\MainCategoryComponent;
 use App\Livewire\Admin\ExpenseCategoryComponent;
+use App\Livewire\Admin\GlobalDashboard;
+use App\Livewire\Admin\MainCategoryComponent;
+use App\Livewire\Admin\ProductComponent;
+use App\Livewire\Admin\SalesReportComponent;
+use App\Livewire\Admin\ShopComponent;
+use App\Livewire\Admin\StockInComponent;
 use App\Livewire\Admin\TransactionHistoryComponent;
+use App\Livewire\Admin\UserComponent;
+use App\Livewire\Auth\Login;
+use App\Livewire\Auth\SelectShop;
+use App\Livewire\Pos\PosComponent;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,34 +39,35 @@ Route::post('/logout', function () {
     return redirect('/login');
 })->name('logout');
 
-// 3. Admin Routes (Secured)
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'check-shop-selected'])->group(function () {
 
-    // Master Data (Categories & Products)
-    // หมายเหตุ: ถ้ายังไม่ได้สร้างไฟล์ Component 2 ตัวนี้ จะ Error "Class not found"
-    // ให้รันคำสั่งสร้างไฟล์ตามด้านล่างทันที
-    Route::get('/categories', CategoryComponent::class)->name('admin.categories');
+    //admin
+    Route::get('/admin/categories', CategoryComponent::class)->name('admin.categories');
 
-    Route::get('/products', ProductComponent::class)->name('admin.products');
+    Route::get('/admin/products', ProductComponent::class)->name('admin.products');
 
-    Route::get('/customers', CustomerComponent::class)->name('admin.customers');
+    Route::get('/admin/customers', CustomerComponent::class)->name('admin.customers');
+
+    Route::get('/admin/stock-in', StockInComponent::class)->name('admin.stock-in');
+
+    Route::get('/admin/transaction-history', TransactionHistoryComponent::class)->name('admin.transaction-history');
+
+    Route::get('/admin/expense-categories', ExpenseCategoryComponent::class)->name('admin.expense-categories');
+
+    Route::get('/admin/shops', ShopComponent::class)->name('admin.shops');
+
+    Route::get('/admin/global-dashboard', GlobalDashboard::class)->name('admin.global-dashboard');
+
+    Route::get('/admin/users', UserComponent::class)->name('admin.users');
+
+    //user
+    Route::get('/sales-report', SalesReportComponent::class)->name('sales-report');
+
+    Route::get('/select-shop', SelectShop::class)->name('select-shop');
 
     Route::get('/pos', PosComponent::class)->name('pos');
 
-    Route::get('/stock-in', StockInComponent::class)->name('admin.stock-in');
-
-    Route::get('/transaction-history', TransactionHistoryComponent::class)->name('admin.transaction-history');
-
-    Route::get('/expense-categories', ExpenseCategoryComponent::class)->name('admin.expense-categories');
-
-    Route::get('/main-categories', MainCategoryComponent::class)->name('admin.main-categories');
-});
-
-// 4. POS / Employee Routes
-Route::middleware(['auth', 'role:employee,admin'])->group(function () {
-    Route::get('/pos', PosComponent::class)->name('pos');
-    // Dashboard
     Route::get('/dashboard', DashboardComponent::class)->name('dashboard');
-
-    Route::get('sales-report', SalesReportComponent::class)->name('sales-report');
 });
+
+
