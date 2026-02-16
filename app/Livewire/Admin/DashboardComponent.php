@@ -33,7 +33,7 @@ class DashboardComponent extends Component
         // 1. Today's Sales (ยอดเงินสดเข้าวันนี้)
         // ----------------------------------------------------
         $todaySales = Transaction::where('shop_id', $shopId) // ✅ กรองร้าน
-            ->whereBetween('created_at', [$startOfDay, $endOfDay])
+            ->whereBetween('transaction_date', [$startOfDay, $endOfDay])
             ->where('status', 'completed')
             ->sum('received_amount');
 
@@ -41,7 +41,7 @@ class DashboardComponent extends Component
         // 2. Monthly Sales (ยอดขายรวมเดือนนี้ - นับตามมูลค่าบิล)
         // ----------------------------------------------------
         $monthlySales = Transaction::where('shop_id', $shopId) // ✅ กรองร้าน
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->whereBetween('transaction_date', [$startOfMonth, $endOfMonth])
             ->where('status', 'completed')
             ->sum('total_amount');
 
@@ -51,7 +51,7 @@ class DashboardComponent extends Component
         $totalProfit = TransactionDetail::join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
             ->where('transactions.shop_id', $shopId) // ✅ กรองร้าน
             ->where('transactions.status', 'completed')
-            ->whereBetween('transactions.created_at', [$startOfMonth, $endOfMonth])
+            ->whereBetween('transactions.transaction_date', [$startOfMonth, $endOfMonth])
             ->sum(DB::raw('(transaction_details.price - transaction_details.cost) * transaction_details.quantity'));
 
         // ----------------------------------------------------
@@ -69,7 +69,7 @@ class DashboardComponent extends Component
         $cylinderStats = TransactionDetail::join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
             ->where('transactions.shop_id', $shopId) // ✅ กรองร้าน
             ->where('transactions.status', 'completed')
-            ->whereBetween('transactions.created_at', [$startOfMonth, $endOfMonth])
+            ->whereBetween('transactions.transaction_date', [$startOfMonth, $endOfMonth])
             ->whereNotNull('gas_status')
             ->where('gas_status', '!=', '')
             ->select('gas_status', DB::raw('SUM(quantity) as total_qty'))
@@ -82,7 +82,7 @@ class DashboardComponent extends Component
         // ----------------------------------------------------
         $topProducts = TransactionDetail::join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
             ->where('transactions.shop_id', $shopId) // ✅ กรองร้าน
-            ->whereBetween('transactions.created_at', [$startOfMonth, $endOfMonth])
+            ->whereBetween('transactions.transaction_date', [$startOfMonth, $endOfMonth])
             ->where('transactions.status', 'completed')
             ->select('product_name', DB::raw('sum(quantity) as total_qty'))
             ->groupBy('product_name')
@@ -110,11 +110,11 @@ class DashboardComponent extends Component
         // ----------------------------------------------------
         $startDate = Carbon::today()->subDays(29);
         $salesData = Transaction::select(
-                DB::raw('DATE(created_at) as date'),
+                DB::raw('DATE(transaction_date) as date'),
                 DB::raw('SUM(total_amount) as total')
             )
             ->where('shop_id', $shopId) // ✅ กรองร้าน
-            ->where('created_at', '>=', $startDate)
+            ->where('transaction_date', '>=', $startDate)
             ->where('status', 'completed')
             ->groupBy('date')
             ->pluck('total', 'date')
