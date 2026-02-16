@@ -13,7 +13,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th class="ps-3">เวลา</th>
+                            <th class="ps-3">วันที่</th>
                             <th>เลขที่บิล</th>
                             <th>ลูกค้า</th>
                             <th class="text-end">ยอดรวม</th>
@@ -25,7 +25,7 @@
                     <tbody>
                         @forelse($transactions as $item)
                         <tr wire:key="row-{{ $item->id }}">
-                            <td class="ps-3 small text-muted">{{ $item->created_at->format('d/m/Y H:i') }}</td>
+                            <td class="ps-3 small text-muted">{{ $item->transaction_date }}</td>
                             <td class="fw-bold text-primary">{{ $item->reference_no }}</td>
                             <td>{{ $item->customer->name ?? '-' }}</td>
                             <td class="text-end fw-bold">{{ number_format($item->total_amount, 2) }}</td>
