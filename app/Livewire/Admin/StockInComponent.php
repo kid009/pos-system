@@ -2,15 +2,17 @@
 
 namespace App\Livewire\Admin;
 
-use Carbon\Carbon;
 use App\Models\Product;
 use App\Models\StockIn;
+use App\Models\StockInDetail;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\StockInDetail;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
+#[Layout('components.layouts.app')]
 class StockInComponent extends Component
 {
     use WithPagination;

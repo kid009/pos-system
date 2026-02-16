@@ -2,14 +2,16 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\User;
 use App\Models\Shop;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
+#[Layout('components.layouts.app')]
 class UserComponent extends Component
 {
     use WithPagination;

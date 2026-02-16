@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Customer;
+use App\Models\Transaction;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Transaction;
-use App\Models\Customer;
 
+#[Layout('components.layouts.app')]
 class TransactionHistoryComponent extends Component
 {
     use WithPagination;

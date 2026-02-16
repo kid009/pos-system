@@ -2,13 +2,15 @@
 
 namespace App\Livewire\Admin;
 
-use Livewire\Component;
-use Livewire\WithPagination;
-use Livewire\WithFileUploads; // สำหรับอัปโหลดรูป
 use App\Models\Shop;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithFileUploads; // สำหรับอัปโหลดรูป
+use Livewire\WithPagination;
 
+#[Layout('components.layouts.app')]
 class ShopComponent extends Component
 {
     use WithPagination;

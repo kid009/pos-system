@@ -3,12 +3,14 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Customer;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Livewire\Attributes\Title;
 use App\Services\LogService; // ✅ เรียกใช้ LogService
 use Exception;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Component;
+use Livewire\WithPagination;
 
+#[Layout('components.layouts.app')]
 #[Title('Manage Customers')]
 class CustomerComponent extends Component
 {

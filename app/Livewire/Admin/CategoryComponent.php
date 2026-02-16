@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Admin;
 
-use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithPagination;
 
+#[Layout('components.layouts.app')]
 class CategoryComponent extends Component
 {
     use WithPagination;

@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\ExpenseCategory;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\ExpenseCategory;
 
+#[Layout('components.layouts.app')]
 class ExpenseCategoryComponent extends Component
 {
     use WithPagination;

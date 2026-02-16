@@ -2,14 +2,15 @@
 
 namespace App\Livewire\Admin;
 
-use Livewire\Component;
+use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
-use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
 
+#[Layout('components.layouts.app')]
 class DashboardComponent extends Component
 {
     public function render()

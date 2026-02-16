@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Admin;
 
-use Livewire\Component;
 use App\Models\Transaction;
 use Carbon\Carbon;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
 
+#[Layout('components.layouts.app')]
 class SalesReportComponent extends Component
 {
     // ตัวแปรสำหรับ Filter
