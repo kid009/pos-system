@@ -10,47 +10,45 @@
                 <i class="fas fa-shopping-cart me-2"></i>หน้าขายสินค้า
             </a>
 
-            @if (session('current_role') === 'shop_owner' || session('current_role') === 'admin')
-                <a href="{{ route('dashboard') }}"
-                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                </a>
+            <a href="{{ route('dashboard') }}"
+                class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+            </a>
 
-                <a href="{{ route('admin.users') }}"
-                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.users') ? 'active' : '' }}">
-                    <i class="fas fa-tags me-2"></i>จัดการพนักงาน
-                </a>
+            <a href="{{ route('admin.shops') }}"
+                class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.shops') ? 'active' : '' }}">
+                <i class="fas fa-tags me-2"></i>จัดการร้านค้า
+            </a>
 
-                <a href="{{ route('admin.shops') }}"
-                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.shops') ? 'active' : '' }}">
-                    <i class="fas fa-tags me-2"></i>จัดการร้านค้า
-                </a>
+            <a href="{{ route('admin.users') }}"
+                class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.users') ? 'active' : '' }}">
+                <i class="fas fa-tags me-2"></i>จัดการพนักงาน
+            </a>
 
-                <a href="{{ route('admin.categories') }}"
-                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.categories') ? 'active' : '' }}">
-                    <i class="fas fa-tags me-2"></i>ประเภทสินค้า
-                </a>
+            <a href="{{ route('admin.categories') }}"
+                class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.categories') ? 'active' : '' }}">
+                <i class="fas fa-tags me-2"></i>ประเภทสินค้า
+            </a>
 
-                <a href="{{ route('admin.products') }}"
-                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.products') ? 'active' : '' }}">
-                    <i class="fas fa-box me-2"></i>สินค้า
-                </a>
+            <a href="{{ route('admin.products') }}"
+                class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.products') ? 'active' : '' }}">
+                <i class="fas fa-box me-2"></i>สินค้า
+            </a>
 
-                <a href="{{ route('admin.stock-in') }}"
-                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.stock-in') ? 'active-link' : '' }}">
-                    <i class="fas fa-users me-2"></i>นำเข้าสินค้า
-                </a>
+            <a href="{{ route('admin.stock-in') }}"
+                class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.stock-in') ? 'active-link' : '' }}">
+                <i class="fas fa-users me-2"></i>นำเข้าสินค้า
+            </a>
 
-                <a href="{{ route('admin.customers') }}"
-                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.customers') ? 'active-link' : '' }}">
-                    <i class="fas fa-users me-2"></i>รายชื่อลูกค้า
-                </a>
+            <a href="{{ route('admin.customers') }}"
+                class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.customers') ? 'active-link' : '' }}">
+                <i class="fas fa-users me-2"></i>รายชื่อลูกค้า
+            </a>
 
-                <a href="{{ route('admin.expense-categories') }}"
-                    class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.expense-categories') ? 'active-link' : '' }}">
-                    <i class="fas fa-users me-2"></i>ประเภทค่าใช้จ่าย
-                </a>
-            @endif
+            <a href="{{ route('admin.expense-categories') }}"
+                class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('admin.expense-categories') ? 'active-link' : '' }}">
+                <i class="fas fa-users me-2"></i>ประเภทค่าใช้จ่าย
+            </a>
 
             <a href="{{ route('sales-report') }}"
                 class="list-group-item list-group-item-action bg-transparent text-white fw-bold {{ request()->routeIs('sales-report') ? 'active' : '' }}">

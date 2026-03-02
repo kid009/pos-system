@@ -7,11 +7,12 @@ use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -47,6 +48,7 @@ class User extends Authenticatable
         ];
     }
 
+    //Many-to-Many (M:M)
     public function shops()
     {
         return $this->belongsToMany(Shop::class, 'shop_user')
@@ -92,16 +94,16 @@ class User extends Authenticatable
         return $shop ? $shop->pivot->role : null;
     }
 
-    // 1. ความสัมพันธ์กับ Role
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class, 'role_user');
-    }
 
     // 2. ฟังก์ชันเช็ค Role (Helper) เอาไว้ใช้ใน Blade หรือ Controller
     // ตัวอย่างการใช้: $user->hasRole('admin')
     public function hasRole($roleName)
     {
         return $this->roles->contains('name', $roleName);
+    }
+
+    public function currentShop()
+    {
+        return $this->shops()->first()->id;
     }
 }

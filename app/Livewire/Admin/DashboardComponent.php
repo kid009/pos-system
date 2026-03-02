@@ -19,9 +19,9 @@ class DashboardComponent extends Component
         $shopId = session('current_shop_id');
 
         // ถ้าไม่มี shop_id (เผื่อหลุดมา) ให้กลับไปเลือก
-        if (!$shopId) {
-            return redirect()->route('select-shop');
-        }
+        // if (!$shopId) {
+        //     return redirect()->route('select-shop');
+        // }
 
         // กำหนดช่วงเวลา
         $startOfDay = Carbon::today()->startOfDay();

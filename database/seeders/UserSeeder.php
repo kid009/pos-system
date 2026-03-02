@@ -4,69 +4,101 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Role;
 use App\Models\Shop;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. ดึง Role และ Shop มารอไว้
-        $roleAdmin = Role::where('name', 'admin')->first();
-        $roleOwner = Role::where('name', 'shop_owner')->first();
-        $roleStaff = Role::where('name', 'staff')->first();
+        // เคลียร์ Cache ของ Spatie
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $shopGas = Shop::where('name', 'like', '%Gas%')->first();
-        $shopCoffee = Shop::where('name', 'like', '%Coffee%')->first();
+        // สร้างร้านค้า 2 ร้าน
+        $shopGas = Shop::firstOrCreate(['name' => 'ร้านแก๊สเจ๊หมวย'], ['phone' => '0811111111']);
+        $shopCoffee = Shop::firstOrCreate(['name' => 'ร้านกาแฟโบราณ'], ['phone' => '0822222222']);
 
         // ==========================================
-        // 1. สร้าง Super Admin (ดูแลทั้งระบบ)
+        // 1. สร้าง Admin (ดูแลทั้งระบบ ไม่ผูกกับร้านไหนเลย)
         // ==========================================
-        $admin = User::create([
-            'name' => 'Super Admin',
-            'email' => 'admin@admin.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin', // เก็บไว้เผื่อ Backward Compatibility
-            'is_active' => true,
-        ]);
-        // Attach Role
-        $admin->roles()->attach($roleAdmin);
-        // Admin อาจจะดูได้ทุกร้าน หรือไม่สังกัดร้านก็ได้ (ตาม Logic Login เรา)
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@admin.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'),
+                'role' => 'admin', // 🎯 Gate::before จะจับที่ตรงนี้
+                'is_active' => true,
+            ]
+        );
 
 
         // ==========================================
-        // 2. สร้าง เจ้าของร้าน (Owner) - เป็นเจ้าของร้านแก๊ส
+        // 2. สร้าง เจ้าของร้านคนที่ 1 (สมชาย - ร้านแก๊ส)
         // ==========================================
-        $owner = User::create([
-            'name' => 'Somchai Owner',
-            'email' => 'owner@gas.com',
-            'password' => Hash::make('password'),
-            'role' => 'shop_owner',
-            'is_active' => true,
-        ]);
-        $owner->roles()->attach($roleOwner);
+        $ownerGas = User::firstOrCreate(
+            ['email' => 'owner@gas.com'],
+            [
+                'name' => 'Somchai Owner',
+                'password' => Hash::make('password'),
+                'role' => 'shop_owner',
+                'is_active' => true,
+            ]
+        );
 
-        // ผูกกับร้านแก๊ส (ในฐานะเจ้าของ)
-        $owner->shops()->attach($shopGas->id, ['role' => 'shop_owner']);
+        // 🎯 ใช้ sync() แทน syncWithoutDetaching() เพื่อการันตีว่ามีแค่ร้านเดียวแน่นอน
+        $ownerGas->shops()->sync([$shopGas->id => ['role' => 'shop_owner']]);
 
-        // (แถม) สมมติคุณสมชาย รวยมาก เป็นเจ้าของร้านกาแฟด้วย
-        $owner->shops()->attach($shopCoffee->id, ['role' => 'shop_owner']);
+        // กำหนดสิทธิ์ Spatie ภายในร้านแก๊ส
+        setPermissionsTeamId($shopGas->id);
+        if (Role::where('name', 'Shop Owner')->exists()) {
+            $ownerGas->assignRole('Shop Owner');
+        }
 
 
         // ==========================================
-        // 3. สร้าง พนักงาน (Staff) - อยู่ร้านแก๊ส
+        // 3. สร้าง เจ้าของร้านคนที่ 2 (สมศรี - ร้านกาแฟ)
         // ==========================================
-        $staff = User::create([
-            'name' => 'Nidnoi Staff',
-            'email' => 'staff@gas.com',
-            'password' => Hash::make('password'),
-            'role' => 'staff',
-            'is_active' => true,
-        ]);
-        $staff->roles()->attach($roleStaff);
+        $ownerCoffee = User::firstOrCreate(
+            ['email' => 'owner@coffee.com'],
+            [
+                'name' => 'Somsri Owner',
+                'password' => Hash::make('password'),
+                'role' => 'shop_owner',
+                'is_active' => true,
+            ]
+        );
 
-        // ผูกกับร้านแก๊ส (ในฐานะพนักงาน)
-        $staff->shops()->attach($shopGas->id, ['role' => 'staff']);
+        $ownerCoffee->shops()->sync([$shopCoffee->id => ['role' => 'shop_owner']]);
+
+        // กำหนดสิทธิ์ Spatie ภายในร้านกาแฟ
+        setPermissionsTeamId($shopCoffee->id);
+        if (Role::where('name', 'Shop Owner')->exists()) {
+            $ownerCoffee->assignRole('Shop Owner');
+        }
+
+
+        // ==========================================
+        // 4. สร้าง พนักงาน (Staff - ร้านแก๊ส)
+        // ==========================================
+        $staff = User::firstOrCreate(
+            ['email' => 'staff@gas.com'],
+            [
+                'name' => 'Nidnoi Staff',
+                'password' => Hash::make('password'),
+                'role' => 'staff',
+                'is_active' => true,
+            ]
+        );
+
+        $staff->shops()->sync([$shopGas->id => ['role' => 'staff']]);
+
+        // กำหนดสิทธิ์ Spatie ภายในร้านแก๊ส
+        setPermissionsTeamId($shopGas->id);
+        if (Role::where('name', 'Staff')->exists()) {
+            $staff->assignRole('Staff');
+        }
+
+        $this->command->info('✅ สร้างข้อมูล User (1 คน : 1 ร้าน) พร้อมกำหนดสิทธิ์ Spatie Teams สำเร็จ!');
     }
 }

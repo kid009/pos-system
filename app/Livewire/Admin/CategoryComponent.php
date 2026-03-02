@@ -2,7 +2,11 @@
 
 namespace App\Livewire\Admin;
 
+use App\Livewire\Forms\CategoryForm;
 use App\Models\Category;
+use App\Models\Shop;
+use App\Queries\Category\GetCategoryListQuery;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -11,67 +15,86 @@ use Livewire\WithPagination;
 #[Layout('components.layouts.app')]
 class CategoryComponent extends Component
 {
-    use WithPagination;
+    use WithPagination, AuthorizesRequests;
+
     protected $paginationTheme = 'bootstrap';
 
-    // ตัวแปรรับค่า
-    public $main_category_id;
-    public $name;
-    public $search = '';
+    public CategoryForm $form;
 
-    public $editingId = null;
+    public string $search = '';
 
-    public function render()
+    public bool $isAdmin = false;
+
+    public function mount()
     {
-        // ดึงข้อมูลหมวดหมู่ย่อยมาแสดง (พร้อม Search และ Join)
-        $categories = Category::where('name', 'like', '%'.$this->search.'%')
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+        $user = Auth::user();
 
-        return view('livewire.admin.category-component', [
-            'categories' => $categories,
-        ]);
+        if ($user->role == 'admin') {
+            $this->isAdmin = true;
+        }
     }
 
-    public function create()
+    // รีเซ็ตหน้าทุกครั้งที่พิมพ์ค้นหา ป้องกันบัคหน้าเปล่า
+    public function updatedSearch(): void
     {
-        $this->reset(['name', 'editingId']);
+        $this->resetPage();
+    }
+
+    public function create(): void
+    {
+        $this->form->reset();
         $this->dispatch('show-modal');
     }
 
-    public function edit($id)
+    public function edit(int $id): void
     {
-        $category = Category::find($id);
-        if ($category) {
-            $this->editingId = $id;
-            $this->name = $category->name;
-            $this->dispatch('show-modal');
-        }
+        $category = Category::findOrFail($id);
+        $this->form->setCategory($category);
+
+        $this->dispatch('show-modal');
     }
 
-    public function save()
+    public function save(): void
     {
-        $this->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
-        $data = [
-            'name' => $this->name,
-        ];
-
-        if ($this->editingId) {
-            $data['updated_by'] = Auth::id();
-            Category::find($this->editingId)->update($data);
-        } else {
-            $data['created_by'] = Auth::id();
-            Category::create($data);
-        }
+        $this->form->storeOrUpdate();
 
         $this->dispatch('close-modal');
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'บันทึกข้อมูลหมวดหมู่สำเร็จ']);
     }
 
-    public function delete($id)
+    public function delete(int $id): void
     {
-        Category::find($id)->delete();
+        $category = Category::findOrFail($id);
+
+        // [Security Check] ตรวจสอบว่ามีสินค้าใช้งานหมวดหมู่นี้อยู่หรือไม่?
+        // สำคัญมาก: ห้ามลบหมวดหมู่ที่มีสินค้าอยู่เด็ดขาด!
+        if ($category->products()->exists()) {
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'message' => 'ไม่สามารถลบได้ เนื่องจากมีสินค้า ' . $category->products()->count() . ' รายการอยู่ในหมวดหมู่นี้'
+            ]);
+            return;
+        }
+
+        $category->delete();
+
+        $this->dispatch('notify', ['type' => 'success', 'message' => 'ลบข้อมูลหมวดหมู่เรียบร้อย']);
+    }
+
+    public function render(GetCategoryListQuery $query)
+    {
+        $user = Auth::user();
+
+        // 1. ดึงรายชื่อร้านค้า
+        // ใช้ Scope เดียวกันกับ Shop Model ได้เลย (ถ้าสร้างไว้)
+        $shops = $this->isAdmin ? Shop::select('id', 'name')->orderBy('name')->get() : $user->shops()->select('shops.id', 'shops.name')->orderBy('shops.name')->get();
+
+        // 2. ดึงหมวดหมู่ (Clean Code)
+        $categories = $query->execute($user, $this->search);
+
+        return view('livewire.admin.category-component', [
+            'categories' => $categories,
+            'shops' => $shops,
+        ]);
     }
 }

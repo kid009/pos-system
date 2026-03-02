@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('category_id')->constrained(); // FK to categories
             $table->string('name');
-            $table->string('barcode')->unique()->index(); // Index for fast scan
             $table->decimal('cost', 10, 2)->default(0);
             $table->decimal('price', 10, 2)->default(0);
             $table->integer('stock_qty')->default(0);

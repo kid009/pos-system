@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            // เพิ่ม Role และ Audit
-            $table->enum('role', ['admin', 'employee'])->default('employee');
+
+            // ✅ เปลี่ยนเป็น string ธรรมดา จะได้ใส่ค่าอะไรลงไปก็ได้ (admin, shop_owner, staff)
+            $table->string('role')->default('staff');
+
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();

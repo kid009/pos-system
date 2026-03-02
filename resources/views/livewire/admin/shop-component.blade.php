@@ -6,9 +6,13 @@
             <h3 class="fw-bold text-primary"><i class="fas fa-store me-2"></i>จัดการร้านค้า (My Shops)</h3>
             <p class="text-muted small mb-0">เพิ่มและแก้ไขข้อมูลร้านค้าของคุณ</p>
         </div>
+
+        @hasrole('admin')
         <button wire:click="create" class="btn btn-primary shadow-sm">
             <i class="fas fa-plus-circle me-1"></i> เปิดร้านใหม่
         </button>
+        @endhasrole
+
     </div>
 
     <!-- Shop List -->
@@ -33,12 +37,12 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Images</th>
-                                    <th>Name</th>
-                                    <th>Phone</th>
-                                    <th>Address</th>
-                                    <th>Edit</th>
-                                    <th>Delete</th>
+                                    <th>โลโก้</th>
+                                    <th>ชื่อร้านค้า</th>
+                                    <th>เบอร์โทรศัพท์</th>
+                                    <th>ที่อยู่ร้าน</th>
+                                    <th>แก้ไข</th>
+                                    <th>ลบข้อมูล</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -81,78 +85,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Shop Cards Loop -->
-        {{-- @forelse($shops as $shop)
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 border-0 shadow-sm hover-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start mb-3">
-                            <!-- Logo -->
-                            <div class="flex-shrink-0 me-3">
-                                @if ($shop->logo_path)
-                                    <img src="{{ asset('storage/' . $shop->logo_path) }}" class="rounded-circle border" width="60" height="60" style="object-fit: cover;">
-                                @else
-                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold fs-4 border" style="width: 60px; height: 60px;">
-                                        {{ substr($shop->name, 0, 1) }}
-                                    </div>
-                                @endif
-                            </div>
-                            <!-- Info -->
-                            <div class="flex-grow-1 overflow-hidden">
-                                <h5 class="fw-bold text-dark mb-1 text-truncate">{{ $shop->name }}</h5>
-                                <div class="small text-muted mb-1"><i class="fas fa-phone-alt me-1"></i> {{ $shop->phone ?? '-' }}</div>
-                                <div class="small text-muted text-truncate"><i class="fas fa-map-marker-alt me-1"></i> {{ $shop->address ?? '-' }}</div>
-                            </div>
-                            <!-- Action Menu -->
-                            <div class="dropdown ms-2">
-                                <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-                                    <li>
-                                        <button class="dropdown-item" wire:click="edit({{ $shop->id }})">
-                                            <i class="fas fa-edit me-2 text-warning"></i> แก้ไขข้อมูล
-                                        </button>
-                                    </li>
-                                    <!-- ปุ่มเข้าสู่ระบบร้านนี้ (Switch Shop) -->
-                                    <li>
-                                        <a href="{{ route('select-shop') }}" class="dropdown-item">
-                                            <i class="fas fa-sign-in-alt me-2 text-success"></i> เข้าร้านนี้
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <button class="dropdown-item text-danger" wire:confirm="ยืนยันการลบร้าน '{{ $shop->name }}' ? ข้อมูลสินค้าทั้งหมดจะหายไป!" wire:click="delete({{ $shop->id }})">
-                                            <i class="fas fa-trash me-2"></i> ลบร้าน
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Tags / Status (Optional) -->
-                        <div class="mt-2">
-                            <span class="badge bg-light text-secondary border">ID: {{ $shop->id }}</span>
-                            @if (auth()->user()->isOwnerOf($shop->id))
-                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Owner</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div class="col-12 text-center py-5 text-muted">
-                <i class="fas fa-store-slash fa-3x mb-3 opacity-25"></i>
-                <h5>ไม่พบข้อมูลร้านค้า</h5>
-                <p>กดปุ่ม "เปิดร้านใหม่" เพื่อเริ่มต้นธุรกิจของคุณ</p>
-            </div>
-        @endforelse
-    </div>
-
-    <div class="mt-4">
-        {{ $shops->links() }}
-    </div> --}}
 
         <!-- ============================================== -->
         <!-- 🔥 MODAL (Create/Edit Shop) 🔥 -->
@@ -220,12 +152,15 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-12 mb-3">
                                     <label class="form-label fw-bold">เบอร์โทรศัพท์</label>
                                     <input type="text" wire:model="phone" class="form-control"
                                         placeholder="081-xxxxxxx">
                                 </div>
-                                <div class="col-md-6 mb-3">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
                                     <label class="form-label fw-bold">ที่อยู่ร้าน</label>
                                     <textarea wire:model="address" class="form-control" rows="1" placeholder="บ้านเลขที่, ตำบล..."></textarea>
                                 </div>

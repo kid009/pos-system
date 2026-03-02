@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'check-shop-selected' => \App\Http\Middleware\CheckShopSelected::class,
+            'check-shop-access' => \App\Http\Middleware\CheckShopAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

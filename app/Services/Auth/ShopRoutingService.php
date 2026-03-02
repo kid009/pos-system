@@ -14,41 +14,39 @@ class ShopRoutingService
      */
     public function determineRedirectPath(User $user): string
     {
-        // 1. Super Admin (ข้ามขั้นตอนร้านค้า)
-        if ($user->role === 'admin' && $user->shops->count() === 0) {
-            Log::info("Routing: Super Admin -> Dashboard");
-            return route('dashboard');
-        }
+        // 1. admin (ข้ามขั้นตอนร้านค้า)
+        // if ($user->role === 'admin' && $user->shops->count() === 0) {
 
-        $shops = $user->shops;
+        //     return route('dashboard');
+        // }
 
-        // 2. ไม่มีร้านสังกัด
-        if ($shops->isEmpty()) {
-            Log::warning("Routing: No shops assigned for user {$user->id}");
-            Auth::logout();
-            // โยน Exception หรือ return error path ตามต้องการ
-            // ในที่นี้เลือก Logout แล้วส่งกลับไป Login พร้อม error
-            return route('login') . '?error=no_shop_assigned';
-        }
+        // $shops = $user->shops;
 
-        // 3. มีร้านเดียว (Auto Select)
-        if ($shops->count() === 1) {
-            $shop = $shops->first();
-            $this->setShopSession($shop);
+        // // 2. ไม่มีร้านสังกัด
+        // if ($shops->isEmpty()) {
 
-            Log::info("Routing: Auto Select Shop ID {$shop->id}");
+        //     Auth::logout();
+        //     // โยน Exception หรือ return error path ตามต้องการ
+        //     // ในที่นี้เลือก Logout แล้วส่งกลับไป Login พร้อม error
+        //     return route('login') . '?error=no_shop_assigned';
+        // }
 
-            // เช็ค Role ในร้านนั้นๆ เพื่อเลือกหน้าแรก
-            if (in_array($shop->pivot->role, ['shop_owner', 'manager'])) {
-                return route('dashboard');
-            }
+        // // 3. มีร้านเดียว (Auto Select)
+        // if ($shops->count() === 1) {
+        //     $shop = $shops->first();
+        //     $this->setShopSession($shop);
 
-            return route('pos');
-        }
+        //     // เช็ค Role ในร้านนั้นๆ เพื่อเลือกหน้าแรก
+        //     if (in_array($shop->pivot->role, ['shop_owner', 'manager'])) {
+        //         return route('dashboard');
+        //     }
 
-        // 4. มีหลายร้าน (ไปหน้าเลือก)
-        Log::info("Routing: Multiple shops -> Selection Page");
-        return route('select-shop');
+        //     return route('pos');
+        // }
+
+        // // 4. มีหลายร้าน (ไปหน้าเลือก)
+        // return route('select-shop');
+        return route('dashboard');
     }
 
     /**

@@ -19,7 +19,8 @@ class Customer extends Model
         'phone',
         'points',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'shop_id',
     ];
 
     public function transactions()

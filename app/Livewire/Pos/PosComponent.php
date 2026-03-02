@@ -28,9 +28,14 @@ class PosComponent extends Component
     // ค้นหาลูกค้า
     public $customerSearch = '';
 
-    // รับค่า checkout (มี $deliveryFee, $discount, $note, $customDate เพิ่มเข้ามา)
+    // ==========================================
+    // 1. ระบบชำระเงิน (Checkout)
+    // ==========================================
     public function checkout($cart, $totalAmount, $receivedAmount, $paymentMethod, $customerId, $deliveryFee = 0, $discount = 0, $note = null, $transactionDate = null)
     {
+        $currentUser = Auth::user();
+        $currentShopId = $currentUser->shops()->first()->id ?? 0;
+
         // 1. Validation
         if (empty($cart)) {
             $this->dispatch('notify', message: 'Cart is empty!', type: 'error');
@@ -42,12 +47,19 @@ class PosComponent extends Component
         try {
             // A. วนลูปเช็คสต็อก
             foreach ($cart as $item) {
-                $product = Product::find($item['id']);
-                if (!$product) continue;
+                // 🔒 Security: ค้นหาสินค้าที่อยู่ใน "ร้านปัจจุบัน" เท่านั้น ป้องกันการแฮ็กส่ง ID สินค้าร้านอื่นมาซื้อ
+                $product = Product::where('id', $item['id'])
+                    ->whereHas('category', function($q) use ($currentShopId) {
+                        $q->where('shop_id', $currentShopId);
+                    })->first();
 
-                // เงื่อนไข: ไม่เช็คสต็อกถ้าเป็น 'บริการ', 'ค่าขนส่ง'
-                // หรือถ้าเป็น 'น้ำแก๊ส' แต่เลือกสถานะ 'คืนถังเปล่า' (สมมติ)
-                $isService = $product->category && in_array($product->category->name, ['น้ำแก๊ส']);
+                if (!$product) {
+                    throw new Exception("ไม่พบสินค้า '{$item['name']}' ในระบบของร้านนี้");
+                }
+
+                // เช็คว่าต้องนับสต็อกไหม (อิงจาก Category Model ที่เราเขียนไว้)
+                // หรือใช้ $isService = !$product->category->isTrackingStock(); ก็ได้ถ้าเพิ่มใน Model แล้ว
+                $isService = $product->category && in_array($product->category->name, ['น้ำแก๊ส', 'บริการ', 'ค่าขนส่ง']);
 
                 if (!$isService && $product->stock_qty < $item['qty']) {
                      throw new Exception("สินค้า '{$item['name']}' มีไม่พอ (เหลือ {$product->stock_qty})");
@@ -73,7 +85,7 @@ class PosComponent extends Component
                 'status'         => 'completed',
                 'note'           => $note,
                 'transaction_date'=> $transactionDate,
-                'shop_id' => session('current_shop_id'),
+                'shop_id'        => $currentShopId, // ✅ บันทึก Shop ID ลงบิล
             ]);
 
             // D. สร้าง Detail
@@ -85,7 +97,7 @@ class PosComponent extends Component
                     'transaction_id' => $transaction->id,
                     'product_id'     => $item['id'],
                     'product_name'   => $item['name'],
-                    'gas_status'     => $item['gas_status'] ?? null, // ✅ บันทึกสถานะถัง
+                    'gas_status'     => $item['gas_status'] ?? null,
                     'price'          => $item['price'],
                     'cost'           => $product->cost,
                     'quantity'       => $item['qty'],
@@ -101,7 +113,7 @@ class PosComponent extends Component
 
             DB::commit();
 
-            // E. ส่งผลลัพธ์กลับ
+            // E. ส่งผลลัพธ์กลับไปปริ้นใบเสร็จ
             $this->lastTransaction = Transaction::with(['details', 'user', 'customer'])->find($transaction->id);
 
             $this->dispatch('print-receipt');
@@ -126,10 +138,22 @@ class PosComponent extends Component
         return redirect('/login');
     }
 
+    // ==========================================
+    // 2. Render แสดงผลหน้า POS
+    // ==========================================
     public function render()
     {
-        // ... (Render Logic เดิม)
+        $currentUser = Auth::user();
+        $currentShopId = $currentUser->shops()->first()->id ?? 0;
+
+        // 🏷️ 1. ดึงหมวดหมู่ (เฉพาะของร้านตัวเอง)
+        $categories = Category::where('shop_id', $currentShopId)->orderBy('name')->get();
+
+        // 📦 2. ดึงสินค้า (เฉพาะสินค้าที่อยู่ในหมวดหมู่ของร้านตัวเอง)
         $products = Product::query()
+            ->whereHas('category', function ($q) use ($currentShopId) {
+                $q->where('shop_id', $currentShopId); // 🔒 ล็อกร้านค้า
+            })
             ->when($this->category_id, function ($q) {
                 $q->where('category_id', $this->category_id);
             })
@@ -137,12 +161,15 @@ class PosComponent extends Component
             ->take(50)
             ->get();
 
-        $categories = Category::orderBy('name')->get();
-
+        // 👥 3. ดึงข้อมูลลูกค้า (เฉพาะลูกค้าร้านตัวเอง)
         $customers = Customer::query()
+            ->where('shop_id', $currentShopId) // 🔒 ล็อกร้านค้า
             ->when($this->customerSearch, function($q) {
-                $q->where('name', 'like', '%' . $this->customerSearch . '%')
-                  ->orWhere('phone', 'like', '%' . $this->customerSearch . '%');
+                // 🐛 BUG FIX: ต้องเอา () มาครอบ where(...) orWhere(...) ไม่งั้น Query จะพังไปดึงลูกค้าข้ามร้าน
+                $q->where(function($subQ) {
+                    $subQ->where('name', 'like', '%' . $this->customerSearch . '%')
+                         ->orWhere('phone', 'like', '%' . $this->customerSearch . '%');
+                });
             })
             ->orderBy('name')
             ->take(20)
