@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Auth\LoginController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -9,9 +9,17 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'processLogin'])->name('login.process');
 });
 
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::middleware('auth')->group(function () {
+
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+
+    Route::resource('/shop', ShopController::class);
+});
+
+
 
 // สร้าง Route ทดสอบหลัง Login สำเร็จ
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth');
