@@ -6,66 +6,51 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use App\Services\LogService;
 
 class LoginService
 {
     /**
-     * ดำเนินการเข้าสู่ระบบ
-     * @throws ValidationException
+     * ดำเนินการตรวจสอบการ Login พร้อมระบบป้องกัน Brute-force
      */
     public function authenticate(string $email, string $password): void
     {
         $throttleKey = $this->throttleKey($email);
 
-        // 1. Check Rate Limit (ป้องกัน Brute Force)
-        $this->ensureIsNotRateLimited($throttleKey, $email);
-
-        // 2. Attempt Login
-        if (!Auth::attempt(['email' => $email, 'password' => $password, 'is_active' => true])) {
-
-            RateLimiter::hit($throttleKey);
-
-            LogService::warning('Login Failed: Invalid Credentials', ['email' => $email]);
-
+        // 1. ตรวจสอบ Rate Limit (จำกัดการเข้าสู่ระบบผิดพลาด)
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
             throw ValidationException::withMessages([
-                'email' => 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', // ใช้ Lang file เพื่อรองรับหลายภาษา
+                'email' => "คุณพยายามเข้าสู่ระบบผิดพลาดหลายครั้ง กรุณารอ {$seconds} วินาที.",
             ]);
         }
 
-        // 3. Login Success
-        RateLimiter::clear($throttleKey);
-        session()->regenerate();
-
-        LogService::info('User Login Success', ['user_id' => Auth::id()]);
-    }
-
-    /**
-     * ตรวจสอบว่าโดนระงับการใช้งานชั่วคราวหรือไม่
-     */
-    protected function ensureIsNotRateLimited(string $key, string $email): void
-    {
-        if (!RateLimiter::tooManyAttempts($key, 5)) {
-            return;
+        // 2. พยายาม Authenticate
+        if (!Auth::attempt(['email' => $email, 'password' => $password])) {
+            RateLimiter::hit($throttleKey); // บันทึกสถิติว่ารหัสผิด
+            throw ValidationException::withMessages([
+                'email' => __('auth.failed'), // รหัสผ่านไม่ถูกต้อง
+            ]);
         }
 
-        $seconds = RateLimiter::availableIn($key);
+        // 3. Clear Rate Limit เมื่อ Login สำเร็จ
+        RateLimiter::clear($throttleKey);
 
-        LogService::warning('Login Rate Limited', ['email' => $email]);
-
-        throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
+        // 4. Setup Context Session เบื้องต้น (ตัวอย่างสำหรับ Admin)
+        $this->setupInitialSessionContext(Auth::user());
     }
 
-    /**
-     * สร้าง Key สำหรับ Rate Limiter
-     */
-    protected function throttleKey(string $email): string
+    private function throttleKey(string $email): string
     {
-        return Str::transliterate(Str::lower($email) . '|' . request()->ip());
+        return Str::transliterate(Str::lower($email).'|'.request()->ip());
+    }
+
+    private function setupInitialSessionContext($user): void
+    {
+        // ป้องกัน Session Fixation
+        request()->session()->regenerate();
+
+        if ($user->role === 'admin') {
+            session(['current_role' => 'admin', 'is_admin' => true]);
+        }
     }
 }

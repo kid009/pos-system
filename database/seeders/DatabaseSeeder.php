@@ -2,8 +2,7 @@
 
 namespace Database\Seeders;
 
-use Database\Seeders\RolesAndPermissionsSeeder;
-use Database\Seeders\UserSeeder;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -16,9 +15,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            RolesAndPermissionsSeeder::class, // สร้าง Role และ Permission
-            UserSeeder::class, // สร้าง User และจับคู่
+        // User::factory(10)->create();
+
+        User::factory()->create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
         ]);
     }
 }
