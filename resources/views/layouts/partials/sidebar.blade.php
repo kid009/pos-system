@@ -34,6 +34,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('category.*') ? 'active' : '' }}" href="{{ route('category.index') }}">
+                        <span data-feather="shopping-bag"></span>
+                        จัดการประเภทสินค้า
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="#">
                         <span data-feather="box"></span>
                         สินค้า & สต๊อก

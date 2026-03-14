@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -18,8 +19,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
     Route::resource('/shop', ShopController::class);
+
+    Route::resource('/category', CategoryController::class);
 });
-
-
-
-// สร้าง Route ทดสอบหลัง Login สำเร็จ
