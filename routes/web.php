@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
@@ -21,4 +22,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('/shop', ShopController::class);
 
     Route::resource('/category', CategoryController::class);
+
+    Route::resource('/products', ProductController::class);
 });
