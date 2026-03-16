@@ -28,22 +28,6 @@
         @enderror
     </div>
 
-    <div class="col-12">
-        <label for="image" class="form-label fw-bold">รูปภาพหมวดหมู่</label>
-        <input type="file" name="image" id="image" accept="image/*"
-               class="form-control @error('image') is-invalid @enderror">
-        @error('image')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-
-        @if(isset($category) && $category->image_path)
-            <div class="mt-2">
-                <img src="{{ asset('storage/' . $category->image_path) }}" class="rounded shadow-sm" style="max-height: 100px;">
-                <div class="form-text">รูปภาพปัจจุบัน</div>
-            </div>
-        @endif
-    </div>
-
     <div class="col-12 mt-4">
         <div class="form-check form-switch border p-3 rounded bg-light">
             <input class="form-check-input ms-0 me-2" type="checkbox" role="switch"

@@ -29,7 +29,6 @@
                     <thead class="table-light">
                         <tr>
                             <th class="px-4 py-3 text-center" style="width: 80px;">ลำดับ</th>
-                            <th class="py-3 text-center" style="width: 100px;">รูปภาพ</th>
                             <th class="py-3">ชื่อหมวดหมู่</th>
 
                             @if(auth()->user()->role === 'admin')
@@ -45,15 +44,6 @@
                         @forelse($categories as $index => $category)
                         <tr>
                             <td class="px-4 py-3 text-center">{{ $categories->firstItem() + $index }}</td>
-                            <td class="text-center">
-                                @if($category->image_path)
-                                    <img src="{{ asset('storage/' . $category->image_path) }}" class="rounded shadow-sm" style="width: 40px; height: 40px; object-fit: cover;">
-                                @else
-                                    <div class="bg-light rounded d-flex align-items-center justify-content-center mx-auto text-muted" style="width: 40px; height: 40px;">
-                                        <span data-feather="image"></span>
-                                    </div>
-                                @endif
-                            </td>
                             <td class="fw-bold text-dark">{{ $category->name }}</td>
 
                             @if(auth()->user()->role === 'admin')

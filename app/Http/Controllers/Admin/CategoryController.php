@@ -70,7 +70,6 @@ class CategoryController extends Controller
 
         $rules = [
             'name' => 'required|string|max:255',
-            'image' => 'nullable|image|max:2048',
         ];
 
         // ถ้าเป็น Admin บังคับให้ต้องเลือกร้านค้า
@@ -85,10 +84,6 @@ class CategoryController extends Controller
 
         // 💡 กำหนด shop_id ตามสิทธิ์ของผู้ใช้
         $data['shop_id'] = $user->role === 'admin' ? $request->shop_id : $this->getCurrentShopId();
-
-        if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('categories', 'public');
-        }
 
         Category::create($data);
 
@@ -118,7 +113,8 @@ class CategoryController extends Controller
         $shops = $user->role === 'admin' ? Shop::all() : collect();
 
         return view('admin.category.edit', [
-            'shop' => $shops,
+            'category' => $category, // 💡 แก้จาก 'shop' เป็น 'category'
+            'shops' => $shops,      // 💡 ส่ง shops ไปให้เลือก
         ]);
     }
 
@@ -133,7 +129,6 @@ class CategoryController extends Controller
 
         $rules = [
             'name' => 'required|string|max:255',
-            'image' => 'nullable|image|max:2048',
         ];
 
         if ($user->role === 'admin') {
@@ -147,13 +142,6 @@ class CategoryController extends Controller
 
         if ($user->role === 'admin') {
             $data['shop_id'] = $request->shop_id;
-        }
-
-        if ($request->hasFile('image')) {
-            if ($category->image_path) {
-                Storage::disk('public')->delete($category->image_path);
-            }
-            $data['image_path'] = $request->file('image')->store('categories', 'public');
         }
 
         $category->update($data);
@@ -174,10 +162,6 @@ class CategoryController extends Controller
 
         if ($category->products()->count() > 0) {
             return redirect()->back()->with('error', 'ไม่สามารถลบได้ เนื่องจากมีสินค้าใช้งานหมวดหมู่นี้อยู่');
-        }
-
-        if ($category->image_path) {
-            Storage::disk('public')->delete($category->image_path);
         }
 
         $category->delete();
