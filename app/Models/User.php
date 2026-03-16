@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',        // 💡 เพิ่มบรรทัดนี้
+        'is_active',   // 💡 เพิ่มบรรทัดนี้
     ];
 
     /**
@@ -43,6 +45,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean', // 💡 เพิ่ม Cast ให้เป็น boolean
         ];
     }
 }

@@ -3,7 +3,9 @@
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ShopController;
+use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\PosController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -24,4 +26,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('/category', CategoryController::class);
 
     Route::resource('/products', ProductController::class);
+
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+
+    Route::post('/pos/checkout', [PosController::class, 'store'])->name('pos.checkout');
+
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+
+;
 });
