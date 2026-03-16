@@ -66,7 +66,7 @@
             </h6>
             <ul class="nav flex-column mb-2">
                 <li class="nav-item">
-                    <a class="nav-link text-danger" href="#">
+                    <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }} text-danger" href="{{ route('users.index') }}">
                         <span data-feather="settings"></span>
                         จัดการผู้ใช้งาน (Users)
                     </a>

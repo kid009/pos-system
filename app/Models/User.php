@@ -21,8 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',        // 💡 เพิ่มบรรทัดนี้
-        'is_active',   // 💡 เพิ่มบรรทัดนี้
+        'role',
+        'is_active',
+        'shop_id',
     ];
 
     /**
@@ -45,7 +46,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_active' => 'boolean', // 💡 เพิ่ม Cast ให้เป็น boolean
+            'is_active' => 'boolean',
         ];
+    }
+
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class);
     }
 }

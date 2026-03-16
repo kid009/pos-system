@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PosController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -26,6 +27,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/category', CategoryController::class);
 
     Route::resource('/products', ProductController::class);
+
+    Route::resource('/users', UserController::class);
 
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
 
