@@ -45,7 +45,7 @@
                         <tr>
                             <td class="text-center">
                                 @if($product->image_path)
-                                    <img src="{{ asset('storage/' . $product->image_path) }}" class="rounded shadow-sm" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <img src="{{ asset('images/' . $product->image_path) }}" class="rounded shadow-sm" style="width: 40px; height: 40px; object-fit: cover;">
                                 @else
                                     <div class="bg-light rounded d-flex align-items-center justify-content-center mx-auto text-muted" style="width: 40px; height: 40px;">
                                         <span data-feather="box"></span>

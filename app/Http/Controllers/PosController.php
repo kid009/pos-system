@@ -40,7 +40,7 @@ class PosController extends Controller
                 'price' => (float) $product->price,
                 'stock' => (float) $product->stock,
                 'unit' => $product->unit,
-                'image' => $product->image_path ? asset('storage/' . $product->image_path) : asset('images/no_pic.png'),
+                'image' => $product->image_path ? asset('images/' . $product->image_path) : asset('images/no_pic.png'),
             ];
         });
 

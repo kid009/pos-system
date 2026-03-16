@@ -86,7 +86,7 @@
 
         @if(isset($product) && $product->image_path)
             <div class="mt-2">
-                <img src="{{ asset('storage/' . $product->image_path) }}" class="rounded shadow-sm" style="max-height: 100px;">
+                <img src="{{ asset('images/' . $product->image_path) }}" class="rounded shadow-sm" style="max-height: 100px;">
             </div>
         @endif
     </div>

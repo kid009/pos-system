@@ -87,7 +87,7 @@ class ProductController extends Controller
         $data['shop_id'] = $user->role === 'admin' ? $request->shop_id : $this->getCurrentShopId();
 
         if ($request->hasFile('image')) {
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = $request->file('image')->store('products', 'images');
         }
 
         Product::create($data);
@@ -147,9 +147,9 @@ class ProductController extends Controller
 
         if ($request->hasFile('image')) {
             if ($product->image_path) {
-                Storage::disk('public')->delete($product->image_path);
+                Storage::disk('images')->delete($product->image_path);
             }
-            $data['image_path'] = $request->file('image')->store('products', 'public');
+            $data['image_path'] = $request->file('image')->store('products', 'images');
         }
 
         $product->update($data);
@@ -166,7 +166,7 @@ class ProductController extends Controller
         // TODO: ในอนาคตต้องเช็คว่าสินค้านี้ถูกผูกกับ Transaction ขายแล้วหรือยัง ห้ามลบถ้ามีการขายไปแล้ว (Safe Delete)
 
         if ($product->image_path) {
-            Storage::disk('public')->delete($product->image_path);
+            Storage::disk('images')->delete($product->image_path);
         }
 
         $product->delete();
