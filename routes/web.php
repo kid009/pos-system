@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ShopController;
@@ -15,9 +16,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
 
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
@@ -32,6 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/pos/checkout', [PosController::class, 'store'])->name('pos.checkout');
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/transactions/{id}', [TransactionController::class, 'show'])->name('transactions.show');
 
 ;
 });

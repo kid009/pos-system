@@ -52,4 +52,17 @@ class TransactionController extends Controller
             'endDate' => $endDate,
         ]);
     }
+
+    public function show($id)
+    {
+        $user = Auth::user();
+        $transaction = Transaction::with(['shop', 'cashier', 'details.product'])->findOrFail($id);
+
+        // จัดการสิทธิ์ (Admin เห็นทุกร้าน, Staff เห็นแค่ร้านตัวเอง)
+        if ($user->role !== 'admin' && $transaction->shop_id !== $user->shop_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('admin.transaction.show', compact('transaction'));
+    }
 }
