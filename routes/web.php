@@ -1,11 +1,12 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\PosController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,5 +34,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/{id}', [TransactionController::class, 'show'])->name('transactions.show');
 
-;
+    Route::resource('customers', CustomerController::class);
 });

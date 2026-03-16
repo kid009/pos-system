@@ -5,7 +5,7 @@
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <span data-feather="home"></span>
-                    หน้าหลัก
+                    แผงควบคุม (Dashboard)
                 </a>
             </li>
             <li class="nav-item">
@@ -46,7 +46,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
                         <span data-feather="users"></span>
                         ฐานข้อมูลลูกค้า
                     </a>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
+use App\Models\Customer;
 use App\Models\Transaction;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,7 +19,6 @@ class PosController extends Controller
         $user = Auth::user();
 
         // 1. ดึงข้อมูลร้านค้า (Admin เห็นทุกร้าน, Staff เห็นแค่ร้านที่ตัวเองสังกัด)
-        // เพื่อความง่ายในตอนนี้ หาก Staff ไม่มี shop_id เราจะให้เห็นสาขาแรกไปก่อน
         $shops = $user->role === 'admin'
             ? Shop::where('is_active', true)->get()
             : Shop::where('id', $user->shop_id ?? 1)->get();
@@ -26,8 +26,10 @@ class PosController extends Controller
         // 2. ดึงข้อมูลหมวดหมู่ทั้งหมด
         $categories = Category::where('is_active', true)->get();
 
-        // 3. ดึงข้อมูลสินค้า พร้อม Mapping ให้เป็น Array ที่เบาที่สุดสำหรับหน้าจอ POS
-        // 💡 Architect Tip: เราไม่ส่ง Model ไปทั้งก้อน เพราะมันมีข้อมูลที่ไม่จำเป็นเยอะ (เปลือง Memory)
+        // 3. ดึงข้อมูลลูกค้า
+        $customers = Customer::where('is_active', true)->get();
+
+        // 4. ดึงข้อมูลสินค้า พร้อม Mapping ให้เป็น Array ที่เบาที่สุดสำหรับหน้าจอ POS
         $products = Product::where('is_active', true)->get()->map(function ($product) {
             return [
                 'id' => $product->id,
@@ -35,7 +37,8 @@ class PosController extends Controller
                 'category_id' => $product->category_id,
                 'name' => $product->name,
                 'sku' => $product->sku,
-                'price' => (float) $product->price, // ต้องแปลงเป็น Float ให้ JS คำนวณได้
+                'price' => (float) $product->price,
+                'stock' => (float) $product->stock,
                 'unit' => $product->unit,
                 'image' => $product->image_path ? asset('storage/' . $product->image_path) : asset('images/no_pic.png'),
             ];
@@ -45,6 +48,7 @@ class PosController extends Controller
             'shops' => $shops,
             'categories' => $categories,
             'products' => $products,
+            'customers' => $customers,
         ]);
     }
 
@@ -52,42 +56,41 @@ class PosController extends Controller
     {
         $request->validate([
             'shop_id' => 'required|exists:shops,id',
+            'customer_id' => 'nullable|exists:customers,id',
             'cart' => 'required|array|min:1',
             'receive_amount' => 'required|numeric|min:0',
+            'transaction_date' => 'nullable|date',
         ]);
 
         try {
             $transaction = DB::transaction(function () use ($request) {
+                $date = $request->transaction_date ? \Carbon\Carbon::parse($request->transaction_date) : now();
+                $datePrefix = 'INV' . $date->format('Ymd');
 
-                // 💡 1. สร้าง Format เลขบิลของวันนี้ (เช่น INV20260315)
-                $todayPrefix = 'INV' . now()->format('Ymd');
-
-                // 💡 2. หาเลขบิลล่าสุดของวันนี้ เพื่อเอามาบวก 1
-                // ใช้ lockForUpdate() เพื่อป้องกันพนักงาน 2 คนกดชำระเงินพร้อมกันแล้วได้เลขบิลซ้ำ
-                $lastTx = Transaction::where('invoice_no', 'like', $todayPrefix . '%')
+                $lastTx = Transaction::where('invoice_no', 'like', $datePrefix . '%')
                     ->lockForUpdate()
                     ->orderBy('invoice_no', 'desc')
                     ->first();
 
                 $queue = 1;
                 if ($lastTx) {
-                    // ตัดเอาเฉพาะ 4 ตัวท้ายมาแปลงเป็นตัวเลข แล้วบวก 1
                     $lastQueue = (int) substr($lastTx->invoice_no, -4);
                     $queue = $lastQueue + 1;
                 }
 
-                // 💡 3. ประกอบร่างเลขบิล (เติมเลข 0 ด้านหน้าให้ครบ 4 หลัก)
-                // ผลลัพธ์: INV202603150001
-                $invoiceNo = $todayPrefix . str_pad($queue, 4, '0', STR_PAD_LEFT);
+                $invoiceNo = $datePrefix . str_pad($queue, 4, '0', STR_PAD_LEFT);
 
                 // สร้างหัวบิล
                 $tx = Transaction::create([
-                    'invoice_no' => $invoiceNo, // 🚨 ใส่เลขบิลตรงนี้
+                    'invoice_no' => $invoiceNo,
+                    'transaction_date' => $date->format('Y-m-d'),
                     'shop_id' => $request->shop_id,
+                    'customer_id' => $request->customer_id,
                     'user_id' => Auth::user()->id,
                     'total_amount' => 0,
                     'receive_amount' => $request->receive_amount,
                     'change_amount' => 0,
+                    'created_at' => $date,
                 ]);
 
                 $calculatedTotal = 0;
@@ -95,6 +98,9 @@ class PosController extends Controller
                 foreach ($request->cart as $item) {
                     $product = Product::find($item['id']);
                     if (!$product) throw new Exception("ไม่พบสินค้า " . $item['name']);
+
+                    // 💡 หักสต็อกสินค้า
+                    $product->decrement('stock', $item['qty']);
 
                     $subtotal = $product->price * $item['qty'];
                     $calculatedTotal += $subtotal;
@@ -120,7 +126,7 @@ class PosController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'บันทึกบิลสำเร็จ',
-                'invoice_no' => $transaction->invoice_no // 🚨 ส่งเลขบิลกลับไปให้หน้าจอ POS นำไปปริ้น
+                'invoice_no' => $transaction->invoice_no
             ]);
         } catch (Exception $e) {
             return response()->json([

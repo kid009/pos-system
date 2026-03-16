@@ -144,7 +144,7 @@
 @endpush
 
 @section('content')
-    <div x-data="posSystem({{ Js::from($products) }}, {{ Js::from($categories) }})" class="pos-container">
+    <div x-data="posSystem({{ Js::from($products) }}, {{ Js::from($categories) }}, {{ Js::from($customers) }})" class="pos-container">
 
         <header class="bg-white shadow-sm p-3 d-flex justify-content-between align-items-center" style="z-index: 10;">
             <div class="d-flex align-items-center gap-3">
@@ -158,6 +158,14 @@
                     @foreach ($shops as $shop)
                         <option value="{{ $shop->id }}">{{ $shop->name }}</option>
                     @endforeach
+                </select>
+
+                <select x-model="selectedCustomer"
+                    class="form-select form-select-sm border-success text-success fw-bold" style="width: 200px;">
+                    <option value="">-- ลูกค้าทั่วไป --</option>
+                    <template x-for="customer in rawCustomers" :key="customer.id">
+                        <option :value="customer.id" x-text="customer.name"></option>
+                    </template>
                 </select>
             </div>
 
@@ -294,7 +302,7 @@
 
                     <button class="btn btn-success btn-lg w-100 fw-bold py-3" @click="openCheckout()"
                         :disabled="cart.length === 0 || selectedShop === ''">
-                        <span data-feather="credit-card"></span> ชำระเงิน (F9)
+                        <span data-feather="credit-card"></span> ชำระเงิน
                     </button>
                 </div>
             </div>
@@ -312,6 +320,16 @@
                     <button type="button" class="btn-close btn-close-white" @click="showCheckoutModal = false"></button>
                 </div>
                 <div class="card-body p-4">
+
+                    <div class="mb-3 p-2 bg-light rounded border-start border-4 border-success">
+                        <small class="text-muted d-block">ลูกค้าที่เลือก:</small>
+                        <span class="fw-bold fs-5 text-success" x-text="selectedCustomerName()"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">วันที่ขาย (Transaction Date)</label>
+                        <input type="date" x-model="transactionDate" class="form-control form-control-lg fw-bold">
+                    </div>
 
                     <div class="d-flex justify-content-between mb-3 text-muted">
                         <span class="fs-5">ยอดรวมสุทธิ</span>
@@ -353,6 +371,7 @@
             <div class="text-center mb-3">
                 <h4 class="fw-bold mb-1">ร้านพีแก๊ส</h4>
                 <div>สาขา: <span x-text="selectedShopName()"></span></div>
+                <div>ลูกค้า: <span x-text="selectedCustomerName()"></span></div>
                 <br>
                 <div class="fw-bold">ใบเสร็จรับเงิน</div>
                 <br>
@@ -407,26 +426,28 @@
         document.addEventListener('alpine:init', () => {
 
             // 💡 Alpine Component Definition
-            Alpine.data('posSystem', (productsData, categoriesData) => ({
+            Alpine.data('posSystem', (productsData, categoriesData, customersData) => ({
 
                 // ==========================================
                 // 1. STATE VARIABLES (ตัวแปรเก็บสถานะ)
                 // ==========================================
                 selectedShop: '',
+                selectedCustomer: '',
                 searchQuery: '',
                 selectedCategory: 'all',
                 currentTime: '',
+                transactionDate: new Date().toISOString().split('T')[0], // 💡 วันปัจจุบันในรูปแบบ YYYY-MM-DD
                 receiveAmount: 0,
                 isProcessing: false, // 💡 ป้องกันการกดปุ่มชำระเงินซ้ำรัวๆ
 
                 // ข้อมูลตั้งต้นจาก Database (Data Hydration)
                 rawProducts: productsData,
                 rawCategories: categoriesData,
+                rawCustomers: customersData,
 
                 // ตะกร้าสินค้า และระบบรับเงิน
                 cart: [],
                 showCheckoutModal: false,
-                receiveAmount: 0,
 
                 // ==========================================
                 // 2. LIFECYCLE (ทำงานอัตโนมัติตอนโหลดเว็บ)
@@ -440,6 +461,13 @@
                             second: '2-digit'
                         });
                     }, 1000);
+                },
+
+                selectedCustomerName() {
+                    if (!this.selectedCustomer) return 'ลูกค้าทั่วไป';
+                    const customer = this.rawCustomers.find(c => c.id.toString() === this.selectedCustomer.toString());
+                    if (!customer) return 'ลูกค้าทั่วไป';
+                    return customer.name;
                 },
 
                 // ==========================================
@@ -545,8 +573,10 @@
                             },
                             body: JSON.stringify({
                                 shop_id: this.selectedShop,
+                                customer_id: this.selectedCustomer,
                                 cart: this.cart,
-                                receive_amount: this.receiveAmount
+                                receive_amount: this.receiveAmount,
+                                transaction_date: this.transactionDate // 🚨 ส่งวันที่ขายไปด้วย
                             })
                         });
 
@@ -561,12 +591,16 @@
                             this.$nextTick(() => {
                                 window.print();
 
-                                // เคลียร์ตะกร้าหลังพิมพ์เสร็จ
+                                // เคลียร์หน้าจอทั้งหมดกลับสู่จุดเริ่มต้น
                                 this.showCheckoutModal = false;
                                 this.cart = [];
                                 this.receiveAmount = 0;
-                                this.currentInvoiceNo =
-                                '-'; // ล้างเลขบิลเตรียมรับลูกค้ารายต่อไป
+                                this.selectedCustomer = '';
+                                this.selectedShop = ''; // กลับไปหน้าเลือกสาขา
+                                this.selectedCategory = 'all';
+                                this.searchQuery = '';
+                                this.transactionDate = new Date().toISOString().split('T')[0];
+                                this.currentInvoiceNo = '-';
                             });
 
                         } else {

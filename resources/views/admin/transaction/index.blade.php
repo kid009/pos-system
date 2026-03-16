@@ -56,7 +56,7 @@
                     <table class="table table-hover table-striped align-middle mb-0">
                         <thead class="table-dark">
                             <tr>
-                                <th class="py-3 px-3">วัน-เวลา</th>
+                                <th class="py-3 px-3">วัน</th>
                                 <th class="py-3">เลขที่ใบเสร็จ</th>
                                 @if (auth()->user()->role === 'admin')
                                     <th class="py-3">สาขา</th>
@@ -72,8 +72,7 @@
                             @forelse($transactions as $tx)
                                 <tr>
                                     <td class="px-3">
-                                        <div class="fw-bold">{{ $tx->created_at->format('d/m/Y') }}</div>
-                                        <div class="text-muted small">{{ $tx->created_at->format('H:i:s') }}</div>
+                                        <div class="fw-bold">{{ $tx->transaction_date ? $tx->transaction_date->format('d/m/Y') : '-' }}</div>
                                     </td>
                                     <td>
                                         <span class="badge bg-light text-dark border fw-bold px-2 py-1 fs-6">
@@ -102,9 +101,9 @@
                                         @endif
                                     </td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary" title="ดูรายละเอียด">
+                                        <a href="{{ route('transactions.show', $tx->id) }}" class="btn btn-sm btn-outline-primary" title="ดูรายละเอียด">
                                             <span data-feather="eye" style="width: 14px; height: 14px;"></span>
-                                        </button>
+                                        </a>
                                     </td>
                                 </tr>
                             @empty
