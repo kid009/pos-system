@@ -144,7 +144,7 @@
 @endpush
 
 @section('content')
-    <div x-data="posSystem({{ Js::from($products) }}, {{ Js::from($categories) }}, {{ Js::from($customers) }})" class="pos-container">
+    <div x-data="posSystem({{ Js::from($products) }}, {{ Js::from($categories) }}, {{ Js::from($customers) }}, {{ Js::from($shops) }})" class="pos-container">
 
         <header class="bg-white shadow-sm p-3 d-flex justify-content-between align-items-center" style="z-index: 10;">
             <div class="d-flex align-items-center gap-3">
@@ -369,10 +369,10 @@
 
         <div id="print-receipt-area" class="d-none d-print-block">
             <div class="text-center mb-3">
-                <h4 class="fw-bold mb-1">ร้านพีแก๊ส</h4>
-                <div>สาขา: <span x-text="selectedShopName()"></span></div>
-                <div>ลูกค้า: <span x-text="selectedCustomerName()"></span></div>
-                <br>
+                <h4 class="fw-bold mb-1" x-text="selectedShopName()"></h4>
+                <div class="small" x-text="selectedShopAddress()"></div>
+                <div class="small" x-show="selectedShopPhone()">โทร: <span x-text="selectedShopPhone()"></span></div>
+                <div>--------------------------------</div>
                 <div class="fw-bold">ใบเสร็จรับเงิน</div>
                 <br>
                 <div class="fw-bold">เลขที่: <span x-text="currentInvoiceNo"></span></div>
@@ -414,7 +414,6 @@
             <div class="text-center mt-4">
                 <div>--------------------------------</div>
                 <div>ขอบคุณที่ใช้บริการ</div>
-                <div>ผู้ทำรายการ: {{ auth()->user()->name ?? 'พนักงาน' }}</div>
             </div>
         </div>
     </div>
@@ -426,7 +425,7 @@
         document.addEventListener('alpine:init', () => {
 
             // 💡 Alpine Component Definition
-            Alpine.data('posSystem', (productsData, categoriesData, customersData) => ({
+            Alpine.data('posSystem', (productsData, categoriesData, customersData, shopsData) => ({
 
                 // ==========================================
                 // 1. STATE VARIABLES (ตัวแปรเก็บสถานะ)
@@ -444,6 +443,7 @@
                 rawProducts: productsData,
                 rawCategories: categoriesData,
                 rawCustomers: customersData,
+                rawShops: shopsData,
 
                 // ตะกร้าสินค้า และระบบรับเงิน
                 cart: [],
@@ -616,15 +616,21 @@
                 },
 
                 selectedShopName() {
-                    // ตอนนี้เราดึงข้อมูลชื่อร้านค้าผ่าน dropdown ที่ผูกกับ selectedShop ได้ยากนิดนึง
-                    // เพราะเราเก็บแค่ ID ในตัวแปร selectedShop
-                    // วิธีดึงที่ง่ายสุดในตอนนี้คือใช้ Javascript หากล่อง select
                     if (!this.selectedShop) return '';
-                    const selectEl = document.querySelector('select[x-model="selectedShop"]');
-                    if (selectEl && selectEl.options[selectEl.selectedIndex]) {
-                        return selectEl.options[selectEl.selectedIndex].text;
-                    }
-                    return "สาขา " + this.selectedShop;
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    return shop ? shop.name : '';
+                },
+
+                selectedShopAddress() {
+                    if (!this.selectedShop) return '';
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    return shop ? shop.address : '';
+                },
+
+                selectedShopPhone() {
+                    if (!this.selectedShop) return '';
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    return shop ? shop.phone : '';
                 }
 
             }));

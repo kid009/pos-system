@@ -65,7 +65,7 @@ class PosController extends Controller
         try {
             $transaction = DB::transaction(function () use ($request) {
                 $date = $request->transaction_date ? \Carbon\Carbon::parse($request->transaction_date) : now();
-                $datePrefix = 'INV' . $date->format('Ymd');
+                $datePrefix = 'REC' . $date->format('Ymd');
 
                 $lastTx = Transaction::where('invoice_no', 'like', $datePrefix . '%')
                     ->lockForUpdate()
