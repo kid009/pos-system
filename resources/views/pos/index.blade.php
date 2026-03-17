@@ -275,7 +275,13 @@
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="text-muted small" x-text="'฿' + item.price.toFixed(2) + ' / ' + item.unit">
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="text-muted small">฿</span>
+                                    <input type="number" step="0.01" 
+                                        class="form-control form-control-sm p-0 border-0 border-bottom text-muted fw-bold bg-transparent" 
+                                        style="width: 70px; outline: none; box-shadow: none;"
+                                        x-model.number="item.price">
+                                    <span class="text-muted small">/ <span x-text="item.unit"></span></span>
                                 </div>
 
                                 <div class="input-group input-group-sm" style="width: 100px;">
