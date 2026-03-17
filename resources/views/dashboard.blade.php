@@ -83,21 +83,63 @@
     </div>
 
     <div class="row g-4 mb-4">
-        <div class="col-md-8">
+        <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h5 class="card-title mb-0 fw-bold">แนวโน้มยอดขาย (7 วันล่าสุด)</h5>
+                    <h5 class="card-title mb-0 fw-bold">ยอดขายตามประเภทการชำระเงิน (วันนี้)</h5>
                 </div>
-                <div class="card-body">
-                    <canvas id="salesChart" height="280"></canvas>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="small fw-bold">ประเภทการชำระเงิน</th>
+                                    <th class="small fw-bold text-center">บิล</th>
+                                    <th class="small fw-bold text-end pe-3">ยอดรวม</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($paymentSummary as $item)
+                                    <tr>
+                                        <td class="small">
+                                            @if($item->payment_method === 'cash')
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">เงินสด (Cash)</span>
+                                            @elseif($item->payment_method === 'transfer')
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">โอนเงิน (Transfer)</span>
+                                            @elseif($item->payment_method === 'credit')
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">ค้างจ่าย (Credit)</span>
+                                            @else
+                                                {{ $item->payment_method }}
+                                            @endif
+                                        </td>
+                                        <td class="small text-center fw-bold">{{ $item->count }}</td>
+                                        <td class="small text-end pe-3">฿{{ number_format($item->total_amount, 2) }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4 text-muted small">ไม่มีข้อมูลการชำระเงินวันนี้</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                            @if($paymentSummary->count() > 0)
+                            <tfoot class="bg-light border-top">
+                                <tr>
+                                    <td class="small fw-bold ps-3">รวมทั้งสิ้น</td>
+                                    <td class="small text-center fw-bold">{{ $paymentSummary->sum('count') }}</td>
+                                    <td class="small text-end pe-3 fw-bold">฿{{ number_format($paymentSummary->sum('total_amount'), 2) }}</td>
+                                </tr>
+                            </tfoot>
+                            @endif
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white py-3">
-                    <h5 class="card-title mb-0 fw-bold">สินค้าขายดี</h5>
+                    <h5 class="card-title mb-0 fw-bold">สินค้าขายดี (Top 5)</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -130,6 +172,19 @@
         </div>
     </div>
 
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="card-title mb-0 fw-bold">แนวโน้มยอดขาย (7 วันล่าสุด)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" height="280"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0 fw-bold">รายการขายล่าสุด</h5>
@@ -148,6 +203,7 @@
                             <th class="py-3 small">ลูกค้า</th>
                             <th class="py-3 small">พนักงาน</th>
                             <th class="py-3 small text-end">ยอดรวม</th>
+                            <th class="py-3 small text-center">ชำระเงิน</th>
                             <th class="py-3 small text-center">สถานะ</th>
                             <th class="py-3 small text-center pe-3">จัดการ</th>
                         </tr>
@@ -170,6 +226,17 @@
                                 <td class="small text-end fw-bold text-primary">฿{{ number_format($tx->total_amount, 2) }}
                                 </td>
                                 <td class="small text-center">
+                                    @if($tx->payment_method === 'cash')
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.7rem;">เงินสด</span>
+                                    @elseif($tx->payment_method === 'transfer')
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style="font-size: 0.7rem;">โอนเงิน</span>
+                                    @elseif($tx->payment_method === 'credit')
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1" style="font-size: 0.7rem;">ค้างจ่าย</span>
+                                    @else
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1" style="font-size: 0.7rem;">{{ $tx->payment_method }}</span>
+                                    @endif
+                                </td>
+                                <td class="small text-center">
                                     <span class="badge bg-success rounded-pill px-2 py-1 fw-normal">สำเร็จ</span>
                                 </td>
                                 <td class="small text-center pe-3">
@@ -181,7 +248,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ auth()->user()->role === 'admin' ? 8 : 7 }}" class="text-center py-5 text-muted">ไม่พบข้อมูลรายการขายล่าสุด</td>
+                                <td colspan="{{ auth()->user()->role === 'admin' ? 9 : 8 }}" class="text-center py-5 text-muted">ไม่พบข้อมูลรายการขายล่าสุด</td>
                             </tr>
                         @endforelse
                     </tbody>

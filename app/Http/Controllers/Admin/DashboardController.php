@@ -36,6 +36,16 @@ class DashboardController extends Controller
         $todaySales = $todayQuery->sum('total_amount');
         $todayTransactionsCount = $todayQuery->count();
 
+        // --- 1.1 ยอดขายแยกตามประเภทการชำระเงิน (วันนี้) ---
+        $paymentSummaryQuery = Transaction::select('payment_method', DB::raw('SUM(total_amount) as total_amount'), DB::raw('COUNT(*) as count'))
+            ->whereDate('transaction_date', Carbon::today())
+            ->where('status', 'completed');
+
+        if ($filterShopId) {
+            $paymentSummaryQuery->where('shop_id', $filterShopId);
+        }
+        $paymentSummary = $paymentSummaryQuery->groupBy('payment_method')->get();
+
         // --- 2. ยอดขายเดือนนี้ ---
         $monthQuery = Transaction::whereMonth('transaction_date', Carbon::now()->month)
             ->whereYear('transaction_date', Carbon::now()->year)
@@ -103,7 +113,8 @@ class DashboardController extends Controller
             'topProducts' => $topProducts,
             'chartData' => $chartData,
             'shops' => $shops,
-            'selectedShopId' => $selectedShopId
+            'selectedShopId' => $selectedShopId,
+            'paymentSummary' => $paymentSummary
         ]);
     }
 }
