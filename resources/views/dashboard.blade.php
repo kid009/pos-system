@@ -5,8 +5,22 @@
 @section('content')
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4 border-bottom">
         <h1 class="h2">ภาพรวมระบบ (Dashboard)</h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-            <div class="btn-group me-2">
+        <div class="btn-toolbar mb-2 mb-md-0 d-flex gap-2">
+            
+            @if(auth()->user()->role === 'admin')
+                <form action="{{ route('dashboard') }}" method="GET" class="d-flex gap-2 align-items-center">
+                    <select name="shop_id" class="form-select form-select-sm border-primary" onchange="this.form.submit()" style="min-width: 200px;">
+                        <option value="">-- แสดงทุกสาขา --</option>
+                        @foreach($shops as $shop)
+                            <option value="{{ $shop->id }}" @selected($selectedShopId == $shop->id)>
+                                {{ $shop->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+            @endif
+
+            <div class="btn-group">
                 <button type="button" class="btn btn-sm btn-outline-secondary">ส่งออก (Export)</button>
             </div>
             <button type="button" class="btn btn-sm btn-outline-primary">
@@ -128,6 +142,10 @@
                         <tr>
                             <th class="ps-3 py-3 small">วัน-เวลา</th>
                             <th class="py-3 small">เลขที่ใบเสร็จ</th>
+                            @if (auth()->user()->role === 'admin')
+                                <th class="py-3 small">ร้านค้า</th>
+                            @endif
+                            <th class="py-3 small">ลูกค้า</th>
                             <th class="py-3 small">พนักงาน</th>
                             <th class="py-3 small text-end">ยอดรวม</th>
                             <th class="py-3 small text-center">สถานะ</th>
@@ -144,6 +162,10 @@
                                         {{ \Carbon\Carbon::parse($tx->transaction_date)->format('H:i') }} น.</div>
                                 </td>
                                 <td class="small fw-bold">{{ $tx->invoice_no }}</td>
+                                @if (auth()->user()->role === 'admin')
+                                    <td class="small">{{ $tx->shop->name ?? '-' }}</td>
+                                @endif
+                                <td class="small">{{ $tx->customer->name ?? 'ลูกค้าทั่วไป' }}</td>
                                 <td class="small">{{ $tx->cashier->name ?? '-' }}</td>
                                 <td class="small text-end fw-bold text-primary">฿{{ number_format($tx->total_amount, 2) }}
                                 </td>
@@ -159,7 +181,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูลรายการขายล่าสุด</td>
+                                <td colspan="{{ auth()->user()->role === 'admin' ? 8 : 7 }}" class="text-center py-5 text-muted">ไม่พบข้อมูลรายการขายล่าสุด</td>
                             </tr>
                         @endforelse
                     </tbody>

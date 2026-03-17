@@ -10,18 +10,27 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Http\Request;
+use App\Models\Shop;
+
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
-        $shopId = $user->shop_id;
+        $selectedShopId = $request->get('shop_id');
+
+        // จัดการสิทธิ์และตัวกรองร้านค้า
+        // Staff: บังคับให้ดูเฉพาะร้านตัวเอง
+        // Admin: ดูได้ทุกร้าน (ถ้ายัด shop_id มาก็กรองตามนั้น)
+        $filterShopId = $user->role === 'admin' ? $selectedShopId : $user->shop_id;
 
         // --- 1. ยอดขายวันนี้ ---
         $todayQuery = Transaction::whereDate('transaction_date', Carbon::today())
             ->where('status', 'completed');
-        if ($user->role !== 'admin') {
-            $todayQuery->where('shop_id', $shopId);
+        
+        if ($filterShopId) {
+            $todayQuery->where('shop_id', $filterShopId);
         }
 
         $todaySales = $todayQuery->sum('total_amount');
@@ -31,19 +40,24 @@ class DashboardController extends Controller
         $monthQuery = Transaction::whereMonth('transaction_date', Carbon::now()->month)
             ->whereYear('transaction_date', Carbon::now()->year)
             ->where('status', 'completed');
-        if ($user->role !== 'admin') {
-            $monthQuery->where('shop_id', $shopId);
+
+        if ($filterShopId) {
+            $monthQuery->where('shop_id', $filterShopId);
         }
         $monthSales = $monthQuery->sum('total_amount');
 
         // --- 3. จำนวนสินค้าทั้งหมด ---
-        $productsCount = Product::count();
+        $productQuery = Product::query();
+        if ($filterShopId) {
+            $productQuery->where('shop_id', $filterShopId);
+        }
+        $productsCount = $productQuery->count();
 
         // --- 4. รายการขายล่าสุด 10 รายการ ---
-        // 🚨 ปรับ latest() ให้เรียงตาม transaction_date แทน created_at
-        $recentTransactionsQuery = Transaction::with(['shop', 'cashier'])->latest('transaction_date');
-        if ($user->role !== 'admin') {
-            $recentTransactionsQuery->where('shop_id', $shopId);
+        $recentTransactionsQuery = Transaction::with(['shop', 'cashier', 'customer'])->latest('transaction_date');
+        
+        if ($filterShopId) {
+            $recentTransactionsQuery->where('shop_id', $filterShopId);
         }
         $recentTransactions = $recentTransactionsQuery->limit(10)->get();
 
@@ -52,8 +66,8 @@ class DashboardController extends Controller
             ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
             ->where('transactions.status', 'completed');
 
-        if ($user->role !== 'admin') {
-            $topProductsQuery->where('transactions.shop_id', $shopId);
+        if ($filterShopId) {
+            $topProductsQuery->where('transactions.shop_id', $filterShopId);
         }
 
         $topProducts = $topProductsQuery->groupBy('product_id', 'product_name')
@@ -65,16 +79,20 @@ class DashboardController extends Controller
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
-            // 🚨 ค้นหาด้วย transaction_date
             $query = Transaction::whereDate('transaction_date', $date)->where('status', 'completed');
-            if ($user->role !== 'admin') {
-                $query->where('shop_id', $shopId);
+            
+            if ($filterShopId) {
+                $query->where('shop_id', $filterShopId);
             }
+            
             $chartData[] = [
                 'date' => $date->format('d/m'),
                 'amount' => $query->sum('total_amount')
             ];
         }
+
+        // ดึงรายชื่อร้านค้าสำหรับ Dropdown (เฉพาะ Admin)
+        $shops = $user->role === 'admin' ? Shop::where('is_active', true)->get() : [];
 
         return view('dashboard', [
             'todaySales' => $todaySales,
@@ -84,6 +102,8 @@ class DashboardController extends Controller
             'recentTransactions' => $recentTransactions,
             'topProducts' => $topProducts,
             'chartData' => $chartData,
+            'shops' => $shops,
+            'selectedShopId' => $selectedShopId
         ]);
     }
 }
