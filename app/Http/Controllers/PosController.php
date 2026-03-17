@@ -60,6 +60,9 @@ class PosController extends Controller
             'cart' => 'required|array|min:1',
             'receive_amount' => 'required|numeric|min:0',
             'transaction_date' => 'nullable|date',
+            'payment_method' => 'required|in:cash,transfer,credit',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'shipping_amount' => 'nullable|numeric|min:0',
         ]);
 
         try {
@@ -88,8 +91,11 @@ class PosController extends Controller
                     'customer_id' => $request->customer_id,
                     'user_id' => Auth::user()->id,
                     'total_amount' => 0,
+                    'discount_amount' => $request->discount_amount ?? 0,
+                    'shipping_amount' => $request->shipping_amount ?? 0,
                     'receive_amount' => $request->receive_amount,
                     'change_amount' => 0,
+                    'payment_method' => $request->payment_method,
                     'created_at' => $date,
                 ]);
 
@@ -115,9 +121,12 @@ class PosController extends Controller
                     ]);
                 }
 
+                // สรุปยอดเงิน (ยอดสินค้า + ค่าขนส่ง - ส่วนลด)
+                $finalTotal = $calculatedTotal + ($request->shipping_amount ?? 0) - ($request->discount_amount ?? 0);
+
                 $tx->update([
-                    'total_amount' => $calculatedTotal,
-                    'change_amount' => max(0, $request->receive_amount - $calculatedTotal)
+                    'total_amount' => $finalTotal,
+                    'change_amount' => max(0, $request->receive_amount - $finalTotal)
                 ]);
 
                 return $tx;

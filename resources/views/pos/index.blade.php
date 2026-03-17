@@ -331,10 +331,41 @@
                         <input type="date" x-model="transactionDate" class="form-control form-control-lg fw-bold">
                     </div>
 
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold">ส่วนลด (Discount)</label>
+                            <input type="number" x-model.number="discountAmount" @input="receiveAmount = netTotal()" class="form-control border-danger text-danger fw-bold">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">ค่าขนส่ง (Shipping)</label>
+                            <input type="number" x-model.number="shippingAmount" @input="receiveAmount = netTotal()" class="form-control border-info text-info fw-bold">
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-between mb-3 text-muted">
-                        <span class="fs-5">ยอดรวมสุทธิ</span>
-                        <span class="fs-4 fw-bold text-dark"
+                        <span class="fs-5">ยอดรวมสินค้า</span>
+                        <span class="fs-5 fw-bold text-dark"
                             x-text="'฿' + cartTotal().toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="fs-4 fw-bold">ยอดสุทธิ</span>
+                        <span class="fs-3 fw-bold text-primary"
+                            x-text="'฿' + netTotal().toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ช่องทางการชำระเงิน</label>
+                        <div class="d-flex gap-2">
+                            <input type="radio" class="btn-check" name="payment_method" id="pay_cash" value="cash" x-model="paymentMethod" checked>
+                            <label class="btn btn-outline-primary flex-fill" for="pay_cash">เงินสด</label>
+
+                            <input type="radio" class="btn-check" name="payment_method" id="pay_transfer" value="transfer" x-model="paymentMethod">
+                            <label class="btn btn-outline-primary flex-fill" for="pay_transfer">โอนเงิน</label>
+
+                            <input type="radio" class="btn-check" name="payment_method" id="pay_credit" value="credit" x-model="paymentMethod">
+                            <label class="btn btn-outline-primary flex-fill" for="pay_credit">ค้างจ่าย</label>
+                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -351,7 +382,7 @@
 
                     <div class="d-grid gap-2">
                         <button class="btn btn-success btn-lg fw-bold" @click="confirmCheckout()"
-                            :disabled="receiveAmount < cartTotal() || isProcessing">
+                            :disabled="receiveAmount < netTotal() || isProcessing">
 
                             <span x-show="!isProcessing"><span data-feather="printer"></span> พิมพ์ใบเสร็จ (Print)</span>
 
@@ -372,6 +403,7 @@
                 <h4 class="fw-bold mb-1" x-text="selectedShopName()"></h4>
                 <div class="small" x-text="selectedShopAddress()"></div>
                 <div class="small" x-show="selectedShopPhone()">โทร: <span x-text="selectedShopPhone()"></span></div>
+                <div>ลูกค้า: <span x-text="selectedCustomerName()"></span></div>
                 <div>--------------------------------</div>
                 <div class="fw-bold">ใบเสร็จรับเงิน</div>
                 <br>
@@ -397,9 +429,21 @@
             </table>
 
             <div class="border-top pt-2 mt-2">
-                <div class="d-flex justify-content-between fw-bold fs-6">
-                    <span>ยอดรวมทั้งสิ้น:</span>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>รวมสินค้า:</span>
                     <span x-text="cartTotal().toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold" x-show="discountAmount > 0 && showDiscountOnReceipt()">
+                    <span>ส่วนลด:</span>
+                    <span x-text="'-' + parseFloat(discountAmount).toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold" x-show="shippingAmount > 0 && showShippingOnReceipt()">
+                    <span>ค่าขนส่ง:</span>
+                    <span x-text="parseFloat(shippingAmount).toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
+                </div>
+                <div class="d-flex justify-content-between fw-bold fs-6 mt-1 border-top pt-1">
+                    <span>รวมทั้งสิ้น:</span>
+                    <span x-text="netTotal().toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
                 </div>
                 <div class="d-flex justify-content-between mt-1 fw-bold">
                     <span>รับเงินสด:</span>
@@ -436,7 +480,10 @@
                 selectedCategory: 'all',
                 currentTime: '',
                 transactionDate: new Date().toISOString().split('T')[0], // 💡 วันปัจจุบันในรูปแบบ YYYY-MM-DD
+                paymentMethod: 'cash',
                 receiveAmount: 0,
+                discountAmount: 0,
+                shippingAmount: 0,
                 isProcessing: false, // 💡 ป้องกันการกดปุ่มชำระเงินซ้ำรัวๆ
 
                 // ข้อมูลตั้งต้นจาก Database (Data Hydration)
@@ -542,9 +589,13 @@
                     return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
                 },
 
+                netTotal() {
+                    return this.cartTotal() + (parseFloat(this.shippingAmount) || 0) - (parseFloat(this.discountAmount) || 0);
+                },
+
                 changeAmount() {
                     // เงินทอน = รับเงินมา - ยอดสุทธิ
-                    return this.receiveAmount - this.cartTotal();
+                    return this.receiveAmount - this.netTotal();
                 },
 
                 // ==========================================
@@ -554,7 +605,7 @@
 
                 openCheckout() {
                     if (this.cart.length === 0) return;
-                    this.receiveAmount = this.cartTotal();
+                    this.receiveAmount = this.netTotal();
                     this.showCheckoutModal = true;
                 },
 
@@ -576,6 +627,9 @@
                                 customer_id: this.selectedCustomer,
                                 cart: this.cart,
                                 receive_amount: this.receiveAmount,
+                                payment_method: this.paymentMethod,
+                                discount_amount: this.discountAmount,
+                                shipping_amount: this.shippingAmount,
                                 transaction_date: this.transactionDate // 🚨 ส่งวันที่ขายไปด้วย
                             })
                         });
@@ -595,6 +649,9 @@
                                 this.showCheckoutModal = false;
                                 this.cart = [];
                                 this.receiveAmount = 0;
+                                this.discountAmount = 0;
+                                this.shippingAmount = 0;
+                                this.paymentMethod = 'cash';
                                 this.selectedCustomer = '';
                                 this.selectedShop = ''; // กลับไปหน้าเลือกสาขา
                                 this.selectedCategory = 'all';
@@ -631,6 +688,18 @@
                     if (!this.selectedShop) return '';
                     const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
                     return shop ? shop.phone : '';
+                },
+
+                showDiscountOnReceipt() {
+                    if (!this.selectedShop) return true;
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    return shop ? !!shop.show_discount_on_receipt : true;
+                },
+
+                showShippingOnReceipt() {
+                    if (!this.selectedShop) return true;
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    return shop ? !!shop.show_shipping_on_receipt : true;
                 }
 
             }));

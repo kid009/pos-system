@@ -27,6 +27,8 @@ class Shop extends Model
         'logo_path',
         'settings',
         'is_active',
+        'show_discount_on_receipt',
+        'show_shipping_on_receipt',
     ];
 
     /**
@@ -37,6 +39,8 @@ class Shop extends Model
     protected $casts = [
         'settings'  => 'array',
         'is_active' => 'boolean',
+        'show_discount_on_receipt' => 'boolean',
+        'show_shipping_on_receipt' => 'boolean',
     ];
 
     /**

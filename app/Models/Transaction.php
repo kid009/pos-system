@@ -14,6 +14,8 @@ class Transaction extends Model
         'user_id',
         'customer_id',
         'total_amount',
+        'discount_amount',
+        'shipping_amount',
         'receive_amount',
         'change_amount',
         'payment_method',

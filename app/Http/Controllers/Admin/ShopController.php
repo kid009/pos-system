@@ -37,10 +37,14 @@ class ShopController extends Controller
             'phone' => 'nullable|string|max:20',
             'tax_id' => 'nullable|string|max:20',
             'is_active' => 'boolean',
+            'show_discount_on_receipt' => 'boolean',
+            'show_shipping_on_receipt' => 'boolean',
         ]);
 
         // จัดการ Boolean checkbox (หากไม่ติ๊กจะเป็น false)
         $validated['is_active'] = $request->boolean('is_active');
+        $validated['show_discount_on_receipt'] = $request->boolean('show_discount_on_receipt');
+        $validated['show_shipping_on_receipt'] = $request->boolean('show_shipping_on_receipt');
 
         Shop::create($validated);
 
@@ -79,9 +83,13 @@ class ShopController extends Controller
             'phone' => 'nullable|string|max:20',
             'tax_id' => 'nullable|string|max:20',
             'is_active' => 'boolean',
+            'show_discount_on_receipt' => 'boolean',
+            'show_shipping_on_receipt' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
+        $validated['show_discount_on_receipt'] = $request->boolean('show_discount_on_receipt');
+        $validated['show_shipping_on_receipt'] = $request->boolean('show_shipping_on_receipt');
 
         $shop->update($validated);
 
