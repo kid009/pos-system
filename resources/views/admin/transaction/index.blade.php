@@ -61,9 +61,10 @@
                                 @if (auth()->user()->role === 'admin')
                                     <th class="py-3">สาขา</th>
                                 @endif
+                                <th class="py-3">ลูกค้า</th>
                                 <th class="py-3">พนักงาน</th>
                                 <th class="py-3 text-end">ยอดรวมสุทธิ</th>
-                                <th class="py-3 text-end">รับเงินมา</th>
+                                <th class="py-3 text-center">ชำระเงิน</th>
                                 <th class="py-3 text-center">สถานะ</th>
                                 <th class="py-3 text-center">จัดการ</th>
                             </tr>
@@ -84,13 +85,24 @@
                                         <td>{{ $tx->shop->name ?? '-' }}</td>
                                     @endif
 
+                                    <td>{{ $tx->customer->name ?? 'ลูกค้าทั่วไป' }}</td>
+
                                     <td>{{ $tx->cashier->name ?? '-' }}</td>
 
                                     <td class="text-end fw-bold text-success fs-5">
                                         {{ number_format($tx->total_amount, 2) }}
                                     </td>
-                                    <td class="text-end text-muted">
-                                        {{ number_format($tx->receive_amount, 2) }}
+
+                                    <td class="text-center">
+                                        @if($tx->payment_method === 'cash')
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">เงินสด</span>
+                                        @elseif($tx->payment_method === 'transfer')
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">โอนเงิน</span>
+                                        @elseif($tx->payment_method === 'credit')
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">ค้างจ่าย</span>
+                                        @else
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">{{ $tx->payment_method }}</span>
+                                        @endif
                                     </td>
 
                                     <td class="text-center">
@@ -108,7 +120,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ auth()->user()->role === 'admin' ? 8 : 7 }}"
+                                    <td colspan="{{ auth()->user()->role === 'admin' ? 9 : 8 }}"
                                         class="text-center py-5 text-muted">
                                         <span data-feather="inbox" style="width: 48px; height: 48px; opacity: 0.5"></span>
                                         <h5 class="mt-3">ไม่พบข้อมูลประวัติการขาย</h5>

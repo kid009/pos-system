@@ -65,4 +65,25 @@ class TransactionController extends Controller
 
         return view('admin.transaction.show', compact('transaction'));
     }
+
+    public function updatePaymentMethod(Request $request, $id)
+    {
+        $user = Auth::user();
+        $transaction = Transaction::findOrFail($id);
+
+        // จัดการสิทธิ์ (Admin เห็นทุกร้าน, Staff เห็นแค่ร้านตัวเอง)
+        if ($user->role !== 'admin' && $transaction->shop_id !== $user->shop_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'payment_method' => 'required|in:cash,transfer,credit',
+        ]);
+
+        $transaction->update([
+            'payment_method' => $request->payment_method
+        ]);
+
+        return back()->with('success', 'ปรับปรุงสถานะการจ่ายเงินเรียบร้อยแล้ว');
+    }
 }

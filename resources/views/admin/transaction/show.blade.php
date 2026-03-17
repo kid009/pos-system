@@ -51,6 +51,22 @@
                             </tbody>
                             <tfoot class="table-light">
                                 <tr>
+                                    <td colspan="4" class="text-end py-2">รวมยอดสินค้า</td>
+                                    <td class="text-end px-4 py-2 fw-bold">{{ number_format($transaction->details->sum('subtotal'), 2) }}</td>
+                                </tr>
+                                @if($transaction->discount_amount > 0)
+                                <tr>
+                                    <td colspan="4" class="text-end py-2 text-danger">ส่วนลด (Discount)</td>
+                                    <td class="text-end px-4 py-2 fw-bold text-danger">-{{ number_format($transaction->discount_amount, 2) }}</td>
+                                </tr>
+                                @endif
+                                @if($transaction->shipping_amount > 0)
+                                <tr>
+                                    <td colspan="4" class="text-end py-2 text-info">ค่าขนส่ง (Shipping)</td>
+                                    <td class="text-end px-4 py-2 fw-bold text-info">+{{ number_format($transaction->shipping_amount, 2) }}</td>
+                                </tr>
+                                @endif
+                                <tr>
                                     <td colspan="4" class="text-end py-3 fw-bold">ยอดรวมสุทธิ (Total Amount)</td>
                                     <td class="text-end px-4 py-3 fw-bold text-primary fs-5">
                                         {{ number_format($transaction->total_amount, 2) }}
@@ -103,14 +119,29 @@
                             <span>{{ $transaction->shop->name ?? '-' }}</span>
                         </li>
                         <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <span class="text-muted">ลูกค้า</span>
+                            <span class="fw-bold">{{ $transaction->customer->name ?? 'ลูกค้าทั่วไป' }}</span>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
                             <span class="text-muted">พนักงานขาย</span>
                             <span>{{ $transaction->cashier->name ?? '-' }}</span>
                         </li>
-                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                            <span class="text-muted">วิธีการชำระเงิน</span>
-                            <span class="badge bg-info text-dark">{{ $transaction->payment_method == 'cash' ? 'เงินสด' : 'อื่นๆ' }}</span>
+                        <li class="list-group-item px-0 border-bottom-0">
+                            <form action="{{ route('transactions.update-payment-method', $transaction->id) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <label class="text-muted small d-block mb-1">วิธีการชำระเงิน</label>
+                                <div class="input-group input-group-sm">
+                                    <select name="payment_method" class="form-select border-primary fw-bold" onchange="this.form.submit()">
+                                        <option value="cash" @selected($transaction->payment_method === 'cash')>เงินสด (Cash)</option>
+                                        <option value="transfer" @selected($transaction->payment_method === 'transfer')>โอนเงิน (Transfer)</option>
+                                        <option value="credit" @selected($transaction->payment_method === 'credit')>ค้างจ่าย (Credit)</option>
+                                    </select>
+                                    <button class="btn btn-primary" type="submit">บันทึก</button>
+                                </div>
+                            </form>
                         </li>
-                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center pt-3">
                             <span class="text-muted">สถานะ</span>
                             @if ($transaction->status === 'completed')
                                 <span class="badge bg-success rounded-pill px-3">สำเร็จ</span>
@@ -141,6 +172,7 @@
         <div class="text-center mb-3">
             <h4 class="fw-bold mb-1">ร้านพีแก๊ส</h4>
             <div>สาขา: {{ $transaction->shop->name ?? '-' }}</div>
+            <div>ลูกค้า: {{ $transaction->customer->name ?? 'ลูกค้าทั่วไป' }}</div>
             <br>
             <div class="fw-bold">ใบเสร็จรับเงิน (สำเนา)</div>
             <br>
@@ -166,7 +198,23 @@
         </table>
 
         <div class="border-top pt-2 mt-2" style="border-top: 1px dashed #000 !important;">
-            <div class="d-flex justify-content-between fw-bold fs-6">
+            <div class="d-flex justify-content-between fw-bold">
+                <span>รวมสินค้า:</span>
+                <span>{{ number_format($transaction->details->sum('subtotal'), 2) }}</span>
+            </div>
+            @if($transaction->discount_amount > 0)
+            <div class="d-flex justify-content-between fw-bold">
+                <span>ส่วนลด:</span>
+                <span>-{{ number_format($transaction->discount_amount, 2) }}</span>
+            </div>
+            @endif
+            @if($transaction->shipping_amount > 0)
+            <div class="d-flex justify-content-between fw-bold">
+                <span>ค่าขนส่ง:</span>
+                <span>+{{ number_format($transaction->shipping_amount, 2) }}</span>
+            </div>
+            @endif
+            <div class="d-flex justify-content-between fw-bold fs-6 mt-1 border-top pt-1" style="border-top: 1px solid #000 !important;">
                 <span>ยอดรวมทั้งสิ้น:</span>
                 <span>{{ number_format($transaction->total_amount, 2) }}</span>
             </div>
