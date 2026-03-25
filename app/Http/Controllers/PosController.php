@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\DB;
 
 class PosController extends Controller
 {
+    protected $transactionService;
+
+    public function __construct(\App\Services\TransactionService $transactionService)
+    {
+        $this->transactionService = $transactionService;
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -54,7 +61,7 @@ class PosController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'shop_id' => 'required|exists:shops,id',
             'customer_id' => 'nullable|exists:customers,id',
             'cart' => 'required|array|min:1',
@@ -66,71 +73,7 @@ class PosController extends Controller
         ]);
 
         try {
-            $transaction = DB::transaction(function () use ($request) {
-                $date = $request->transaction_date ? \Carbon\Carbon::parse($request->transaction_date) : now();
-                $datePrefix = 'REC' . $date->format('Ymd');
-
-                $lastTx = Transaction::where('invoice_no', 'like', $datePrefix . '%')
-                    ->lockForUpdate()
-                    ->orderBy('invoice_no', 'desc')
-                    ->first();
-
-                $queue = 1;
-                if ($lastTx) {
-                    $lastQueue = (int) substr($lastTx->invoice_no, -4);
-                    $queue = $lastQueue + 1;
-                }
-
-                $invoiceNo = $datePrefix . str_pad($queue, 4, '0', STR_PAD_LEFT);
-
-                // สร้างหัวบิล
-                $tx = Transaction::create([
-                    'invoice_no' => $invoiceNo,
-                    'transaction_date' => $date->format('Y-m-d'),
-                    'shop_id' => $request->shop_id,
-                    'customer_id' => $request->customer_id,
-                    'user_id' => Auth::user()->id,
-                    'total_amount' => 0,
-                    'discount_amount' => $request->discount_amount ?? 0,
-                    'shipping_amount' => $request->shipping_amount ?? 0,
-                    'receive_amount' => $request->receive_amount,
-                    'change_amount' => 0,
-                    'payment_method' => $request->payment_method,
-                    'created_at' => $date,
-                ]);
-
-                $calculatedTotal = 0;
-
-                foreach ($request->cart as $item) {
-                    $product = Product::find($item['id']);
-                    if (!$product) throw new Exception("ไม่พบสินค้า " . $item['name']);
-
-                    // 💡 หักสต็อกสินค้า
-                    $product->decrement('stock', $item['qty']);
-
-                    $subtotal = $product->price * $item['qty'];
-                    $calculatedTotal += $subtotal;
-
-                    $tx->details()->create([
-                        'product_id' => $product->id,
-                        'product_name' => $product->name,
-                        'cost' => $product->cost,
-                        'price' => $product->price,
-                        'qty' => $item['qty'],
-                        'subtotal' => $subtotal
-                    ]);
-                }
-
-                // สรุปยอดเงิน (ยอดสินค้า + ค่าขนส่ง - ส่วนลด)
-                $finalTotal = $calculatedTotal + ($request->shipping_amount ?? 0) - ($request->discount_amount ?? 0);
-
-                $tx->update([
-                    'total_amount' => $finalTotal,
-                    'change_amount' => max(0, $request->receive_amount - $finalTotal)
-                ]);
-
-                return $tx;
-            });
+            $transaction = $this->transactionService->checkout($validated);
 
             return response()->json([
                 'success' => true,

@@ -98,48 +98,8 @@
         }
 
         /* ------------------------------------- */
-        /* CSS สำหรับจำลองหน้าจอพิมพ์ใบเสร็จ (Print) */
+        /* CSS สำหรับจำลองหน้าจอพิมพ์ใบเสร็จ (Print) - ย้ายไปที่ partials.receipt */
         /* ------------------------------------- */
-        @media print {
-            @page {
-                margin: 0;
-                size: 58mm auto;
-            }
-
-            body * {
-                visibility: hidden;
-            }
-
-            #print-receipt-area,
-            #print-receipt-area * {
-                visibility: visible;
-                font-weight: bold !important;
-                color: #000000 !important;
-            }
-
-            /* 🚨 แก้ไขการจัดกึ่งกลางและความกว้างตรงนี้ 🚨 */
-            #print-receipt-area {
-                position: absolute;
-                left: 30%;
-                /* 1. ดันจุดเริ่มต้นไปอยู่กึ่งกลางหน้ากระดาษ */
-                top: 0;
-                transform: translateX(-30%);
-                /* 2. ดึงตัวเองกลับมาครึ่งนึง เพื่อให้กึ่งกลางเป๊ะ 100% */
-                width: 58mm;
-                /* 3. ขนาดที่พิมพ์ได้จริงของเครื่อง 58mm คือประมาณ 48mm */
-                padding: 2mm 1mm 0 0;
-                /* ดันขอบบนลงมานิดนึง */
-                font-size: 14px;
-                font-family: 'Tahoma', sans-serif !important;
-                line-height: 1.4;
-            }
-
-            body {
-                overflow: hidden;
-                margin: 0;
-                padding: 0;
-            }
-        }
     </style>
 @endpush
 
@@ -160,8 +120,8 @@
                     @endforeach
                 </select>
 
-                <select x-model="selectedCustomer"
-                    class="form-select form-select-sm border-success text-success fw-bold" style="width: 200px;">
+                <select x-model="selectedCustomer" class="form-select form-select-sm border-success text-success fw-bold"
+                    style="width: 200px;">
                     <option value="">-- ลูกค้าทั่วไป --</option>
                     <template x-for="customer in rawCustomers" :key="customer.id">
                         <option :value="customer.id" x-text="customer.name"></option>
@@ -225,7 +185,7 @@
                         <div class="card product-card h-100" @click="addToCart(product)">
 
                             <template x-if="product.image">
-                                <img :src="product.image" class="product-img">
+                                <img :src="product.image" class="product-img" loading="lazy" decoding="async" alt="Product">
                             </template>
                             <template x-if="!product.image">
                                 <div class="product-img d-flex align-items-center justify-content-center text-muted">
@@ -277,10 +237,9 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center gap-1">
                                     <span class="text-muted small">฿</span>
-                                    <input type="number" step="0.01" 
-                                        class="form-control form-control-sm p-0 border-0 border-bottom text-muted fw-bold bg-transparent" 
-                                        style="width: 70px; outline: none; box-shadow: none;"
-                                        x-model.number="item.price">
+                                    <input type="number" step="0.01"
+                                        class="form-control form-control-sm p-0 border-0 border-bottom text-muted fw-bold bg-transparent"
+                                        style="width: 70px; outline: none; box-shadow: none;" x-model.number="item.price">
                                     <span class="text-muted small">/ <span x-text="item.unit"></span></span>
                                 </div>
 
@@ -340,11 +299,13 @@
                     <div class="row g-3 mb-3">
                         <div class="col-6">
                             <label class="form-label fw-bold">ส่วนลด (Discount)</label>
-                            <input type="number" x-model.number="discountAmount" @input="receiveAmount = netTotal()" class="form-control border-danger text-danger fw-bold">
+                            <input type="number" x-model.number="discountAmount" @input="receiveAmount = netTotal()"
+                                class="form-control border-danger text-danger fw-bold">
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-bold">ค่าขนส่ง (Shipping)</label>
-                            <input type="number" x-model.number="shippingAmount" @input="receiveAmount = netTotal()" class="form-control border-info text-info fw-bold">
+                            <input type="number" x-model.number="shippingAmount" @input="receiveAmount = netTotal()"
+                                class="form-control border-info text-info fw-bold">
                         </div>
                     </div>
 
@@ -363,13 +324,16 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">ช่องทางการชำระเงิน</label>
                         <div class="d-flex gap-2">
-                            <input type="radio" class="btn-check" name="payment_method" id="pay_cash" value="cash" x-model="paymentMethod" checked>
+                            <input type="radio" class="btn-check" name="payment_method" id="pay_cash" value="cash"
+                                x-model="paymentMethod" checked>
                             <label class="btn btn-outline-primary flex-fill" for="pay_cash">เงินสด</label>
 
-                            <input type="radio" class="btn-check" name="payment_method" id="pay_transfer" value="transfer" x-model="paymentMethod">
+                            <input type="radio" class="btn-check" name="payment_method" id="pay_transfer"
+                                value="transfer" x-model="paymentMethod">
                             <label class="btn btn-outline-primary flex-fill" for="pay_transfer">โอนเงิน</label>
 
-                            <input type="radio" class="btn-check" name="payment_method" id="pay_credit" value="credit" x-model="paymentMethod">
+                            <input type="radio" class="btn-check" name="payment_method" id="pay_credit"
+                                value="credit" x-model="paymentMethod">
                             <label class="btn btn-outline-primary flex-fill" for="pay_credit">ค้างจ่าย</label>
                         </div>
                     </div>
@@ -404,68 +368,7 @@
             </div>
         </div>
 
-        <div id="print-receipt-area" class="d-none d-print-block">
-            <div class="text-center mb-3">
-                <h4 class="fw-bold mb-1" x-text="selectedShopName()"></h4>
-                <div class="small" x-text="selectedShopAddress()"></div>
-                <div class="small" x-show="selectedShopPhone()">โทร: <span x-text="selectedShopPhone()"></span></div>
-                <div>ลูกค้า: <span x-text="selectedCustomerName()"></span></div>
-                <div>--------------------------------</div>
-                <div class="fw-bold">ใบเสร็จรับเงิน</div>
-                <br>
-                <div class="fw-bold">เลขที่: <span x-text="currentInvoiceNo"></span></div>
-                <div>วันที่: <span x-text="new Date().toLocaleDateString('th-TH')"></span></div>
-                <br>
-            </div>
-
-            <table class="w-100 mb-2">
-                <tbody>
-                    <template x-for="item in cart" :key="item.id">
-                        <tr>
-                            <td class="pb-1">
-                                <div x-text="item.name"></div>
-                                <div class="text-muted fw-bold"><span x-text="item.qty"></span> x <span
-                                        x-text="item.price.toFixed(2)"></span></div>
-                            </td>
-                            <td class="text-end align-bottom pb-1 fw-bold"
-                                x-text="(item.qty * item.price).toLocaleString('th-TH', {minimumFractionDigits: 2})"></td>
-                        </tr>
-                    </template>
-                </tbody>
-            </table>
-
-            <div class="border-top pt-2 mt-2">
-                <div class="d-flex justify-content-between fw-bold">
-                    <span>รวมสินค้า:</span>
-                    <span x-text="cartTotal().toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
-                </div>
-                <div class="d-flex justify-content-between fw-bold" x-show="discountAmount > 0 && showDiscountOnReceipt()">
-                    <span>ส่วนลด:</span>
-                    <span x-text="'-' + parseFloat(discountAmount).toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
-                </div>
-                <div class="d-flex justify-content-between fw-bold" x-show="shippingAmount > 0 && showShippingOnReceipt()">
-                    <span>ค่าขนส่ง:</span>
-                    <span x-text="parseFloat(shippingAmount).toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
-                </div>
-                <div class="d-flex justify-content-between fw-bold fs-6 mt-1 border-top pt-1">
-                    <span>รวมทั้งสิ้น:</span>
-                    <span x-text="netTotal().toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
-                </div>
-                <div class="d-flex justify-content-between mt-1 fw-bold">
-                    <span>รับเงินสด:</span>
-                    <span x-text="receiveAmount.toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
-                </div>
-                <div class="d-flex justify-content-between mt-1 fw-bold">
-                    <span>เงินทอน:</span>
-                    <span x-text="changeAmount().toLocaleString('th-TH', {minimumFractionDigits: 2})"></span>
-                </div>
-            </div>
-
-            <div class="text-center mt-4">
-                <div>--------------------------------</div>
-                <div>ขอบคุณที่ใช้บริการ</div>
-            </div>
-        </div>
+        <x-receipt :isAlpine="true" />
     </div>
 
 @endsection
@@ -485,7 +388,8 @@
                 searchQuery: '',
                 selectedCategory: 'all',
                 currentTime: '',
-                transactionDate: new Date().toISOString().split('T')[0], // 💡 วันปัจจุบันในรูปแบบ YYYY-MM-DD
+                transactionDate: new Date().toISOString().split('T')[
+                    0], // 💡 วันปัจจุบันในรูปแบบ YYYY-MM-DD
                 paymentMethod: 'cash',
                 receiveAmount: 0,
                 discountAmount: 0,
@@ -506,6 +410,7 @@
                 // 2. LIFECYCLE (ทำงานอัตโนมัติตอนโหลดเว็บ)
                 // ==========================================
                 init() {
+                    // ⏱ 1. ระบบนาฬิกา
                     setInterval(() => {
                         const now = new Date();
                         this.currentTime = now.toLocaleTimeString('th-TH', {
@@ -514,13 +419,35 @@
                             second: '2-digit'
                         });
                     }, 1000);
-                },
 
-                selectedCustomerName() {
-                    if (!this.selectedCustomer) return 'ลูกค้าทั่วไป';
-                    const customer = this.rawCustomers.find(c => c.id.toString() === this.selectedCustomer.toString());
-                    if (!customer) return 'ลูกค้าทั่วไป';
-                    return customer.name;
+                    // 💾 2. กู้คืนข้อมูลจาก Local Storage (ตอนโหลดหน้าเว็บ)
+                    const savedCart = localStorage.getItem('pos_cart');
+                    if (savedCart) {
+                        try {
+                            this.cart = JSON.parse(savedCart);
+                        } catch (e) {
+                            this.cart = [];
+                        }
+                    }
+
+                    const savedShop = localStorage.getItem('pos_shop');
+                    if (savedShop) this.selectedShop = savedShop;
+
+                    const savedCustomer = localStorage.getItem('pos_customer');
+                    if (savedCustomer) this.selectedCustomer = savedCustomer;
+
+                    // 📡 3. ดักจับการเปลี่ยนแปลง (ถ้ามีการแก้ตะกร้า ให้เซฟลง Local Storage อัตโนมัติ)
+                    this.$watch('cart', (newValue) => {
+                        localStorage.setItem('pos_cart', JSON.stringify(newValue));
+                    });
+
+                    this.$watch('selectedShop', (newValue) => {
+                        localStorage.setItem('pos_shop', newValue);
+                    });
+
+                    this.$watch('selectedCustomer', (newValue) => {
+                        localStorage.setItem('pos_customer', newValue);
+                    });
                 },
 
                 // ==========================================
@@ -596,7 +523,8 @@
                 },
 
                 netTotal() {
-                    return this.cartTotal() + (parseFloat(this.shippingAmount) || 0) - (parseFloat(this.discountAmount) || 0);
+                    return this.cartTotal() + (parseFloat(this.shippingAmount) || 0) - (parseFloat(this
+                        .discountAmount) || 0);
                 },
 
                 changeAmount() {
@@ -636,7 +564,8 @@
                                 payment_method: this.paymentMethod,
                                 discount_amount: this.discountAmount,
                                 shipping_amount: this.shippingAmount,
-                                transaction_date: this.transactionDate // 🚨 ส่งวันที่ขายไปด้วย
+                                transaction_date: this
+                                    .transactionDate // 🚨 ส่งวันที่ขายไปด้วย
                             })
                         });
 
@@ -662,7 +591,8 @@
                                 this.selectedShop = ''; // กลับไปหน้าเลือกสาขา
                                 this.selectedCategory = 'all';
                                 this.searchQuery = '';
-                                this.transactionDate = new Date().toISOString().split('T')[0];
+                                this.transactionDate = new Date().toISOString().split('T')[
+                                    0];
                                 this.currentInvoiceNo = '-';
                             });
 
@@ -680,31 +610,36 @@
 
                 selectedShopName() {
                     if (!this.selectedShop) return '';
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
+                        .toString());
                     return shop ? shop.name : '';
                 },
 
                 selectedShopAddress() {
                     if (!this.selectedShop) return '';
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
+                        .toString());
                     return shop ? shop.address : '';
                 },
 
                 selectedShopPhone() {
                     if (!this.selectedShop) return '';
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
+                        .toString());
                     return shop ? shop.phone : '';
                 },
 
                 showDiscountOnReceipt() {
                     if (!this.selectedShop) return true;
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
+                        .toString());
                     return shop ? !!shop.show_discount_on_receipt : true;
                 },
 
                 showShippingOnReceipt() {
                     if (!this.selectedShop) return true;
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
+                        .toString());
                     return shop ? !!shop.show_shipping_on_receipt : true;
                 }
 
