@@ -129,6 +129,8 @@
                 </select>
             </div>
 
+
+
             <div class="d-flex align-items-center gap-3">
                 <div class="input-group input-group-sm" style="width: 300px;">
                     <span class="input-group-text bg-white"><span data-feather="search" style="width: 16px;"></span></span>
@@ -139,7 +141,23 @@
                     <div class="fw-bold">{{ auth()->user()->name }}</div>
                     <small class="text-muted"><span x-text="currentTime"></span></small>
                 </div>
+
+                <button class="btn btn-warning btn-sm fw-bold position-relative d-flex align-items-center gap-1"
+                    x-show="offlineQueue.length > 0" @click="syncOfflineBills()" :disabled="isSyncing">
+                    <span data-feather="wifi-off" style="width: 14px;"></span>
+                    <span x-show="!isSyncing">รอซิงค์ (<span x-text="offlineQueue.length"></span>)</span>
+                    <span x-show="isSyncing">กำลังซิงค์...</span>
+
+                    <span
+                        class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"
+                        x-show="!isSyncing">
+                        <span class="visually-hidden">New alerts</span>
+                    </span>
+                </button>
             </div>
+
+
+
         </header>
 
         <div class="pos-body">
@@ -185,7 +203,8 @@
                         <div class="card product-card h-100" @click="addToCart(product)">
 
                             <template x-if="product.image">
-                                <img :src="product.image" class="product-img" loading="lazy" decoding="async" alt="Product">
+                                <img :src="product.image" class="product-img" loading="lazy" decoding="async"
+                                    alt="Product">
                             </template>
                             <template x-if="!product.image">
                                 <div class="product-img d-flex align-items-center justify-content-center text-muted">
@@ -381,105 +400,97 @@
             Alpine.data('posSystem', (productsData, categoriesData, customersData, shopsData) => ({
 
                 // ==========================================
-                // 1. STATE VARIABLES (ตัวแปรเก็บสถานะ)
+                // 1. STATE VARIABLES
                 // ==========================================
                 selectedShop: '',
                 selectedCustomer: '',
                 searchQuery: '',
                 selectedCategory: 'all',
                 currentTime: '',
-                transactionDate: new Date().toISOString().split('T')[
-                    0], // 💡 วันปัจจุบันในรูปแบบ YYYY-MM-DD
+                transactionDate: new Date().toISOString().split('T')[0],
                 paymentMethod: 'cash',
                 receiveAmount: 0,
                 discountAmount: 0,
                 shippingAmount: 0,
-                isProcessing: false, // 💡 ป้องกันการกดปุ่มชำระเงินซ้ำรัวๆ
+                isProcessing: false,
+                isSyncing: false,
 
-                // ข้อมูลตั้งต้นจาก Database (Data Hydration)
                 rawProducts: productsData,
                 rawCategories: categoriesData,
                 rawCustomers: customersData,
                 rawShops: shopsData,
 
-                // ตะกร้าสินค้า และระบบรับเงิน
                 cart: [],
                 showCheckoutModal: false,
+                currentInvoiceNo: '-',
+
+                offlineQueue: [],
 
                 // ==========================================
-                // 2. LIFECYCLE (ทำงานอัตโนมัติตอนโหลดเว็บ)
+                // 2. LIFECYCLE (ทำงานตอนโหลดหน้าเว็บ)
                 // ==========================================
                 init() {
                     // ⏱ 1. ระบบนาฬิกา
                     setInterval(() => {
                         const now = new Date();
                         this.currentTime = now.toLocaleTimeString('th-TH', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit'
+                            hour: '2-digit', minute: '2-digit', second: '2-digit'
                         });
                     }, 1000);
 
-                    // 💾 2. กู้คืนข้อมูลจาก Local Storage (ตอนโหลดหน้าเว็บ)
-                    const savedCart = localStorage.getItem('pos_cart');
-                    if (savedCart) {
-                        try {
-                            this.cart = JSON.parse(savedCart);
-                        } catch (e) {
-                            this.cart = [];
-                        }
+                    // 💾 2. กู้คืนข้อมูลจาก Local Storage
+                    try {
+                        const savedCart = localStorage.getItem('pos_cart');
+                        if (savedCart) this.cart = JSON.parse(savedCart);
+
+                        const savedQueue = localStorage.getItem('pos_offline_queue');
+                        if (savedQueue) this.offlineQueue = JSON.parse(savedQueue);
+                    } catch (e) {
+                        this.cart = [];
+                        this.offlineQueue = [];
                     }
 
-                    const savedShop = localStorage.getItem('pos_shop');
-                    if (savedShop) this.selectedShop = savedShop;
+                    if (localStorage.getItem('pos_shop')) this.selectedShop = localStorage.getItem('pos_shop');
+                    if (localStorage.getItem('pos_customer')) this.selectedCustomer = localStorage.getItem('pos_customer');
 
-                    const savedCustomer = localStorage.getItem('pos_customer');
-                    if (savedCustomer) this.selectedCustomer = savedCustomer;
+                    // 📡 3. ดักจับการเปลี่ยนแปลง เพื่อเซฟลงเครื่อง
+                    this.$watch('cart', val => localStorage.setItem('pos_cart', JSON.stringify(val)));
+                    this.$watch('selectedShop', val => localStorage.setItem('pos_shop', val));
+                    this.$watch('selectedCustomer', val => localStorage.setItem('pos_customer', val));
+                    this.$watch('offlineQueue', val => localStorage.setItem('pos_offline_queue', JSON.stringify(val)));
 
-                    // 📡 3. ดักจับการเปลี่ยนแปลง (ถ้ามีการแก้ตะกร้า ให้เซฟลง Local Storage อัตโนมัติ)
-                    this.$watch('cart', (newValue) => {
-                        localStorage.setItem('pos_cart', JSON.stringify(newValue));
-                    });
-
-                    this.$watch('selectedShop', (newValue) => {
-                        localStorage.setItem('pos_shop', newValue);
-                    });
-
-                    this.$watch('selectedCustomer', (newValue) => {
-                        localStorage.setItem('pos_customer', newValue);
+                    // 🚨 4. [แก้ไขแล้ว] ดักจับสัญญาณอินเทอร์เน็ต ต้องอยู่ข้างใน init() เท่านั้น 🚨
+                    window.addEventListener('online', () => {
+                        if (this.offlineQueue.length > 0) {
+                            console.log('🌐 อินเทอร์เน็ตกลับมาแล้ว! กำลังเริ่มซิงค์ข้อมูล...');
+                            this.syncOfflineBills();
+                        }
                     });
                 },
 
                 // ==========================================
-                // 3. COMPUTED & FILTERS (ตัวช่วยกรองข้อมูล)
+                // 3. COMPUTED & FILTERS
                 // ==========================================
                 shopCategories() {
-                    if (this.selectedShop === '') return [];
-                    return this.rawCategories.filter(cat => cat.shop_id.toString() === this.selectedShop
-                        .toString());
+                    if (!this.selectedShop) return [];
+                    return this.rawCategories.filter(cat => cat.shop_id.toString() === this.selectedShop.toString());
                 },
 
                 filteredProducts() {
-                    if (this.selectedShop === '') return [];
+                    if (!this.selectedShop) return [];
                     return this.rawProducts.filter(product => {
-                        const matchShop = product.shop_id.toString() === this.selectedShop
-                            .toString();
-                        const matchCategory = this.selectedCategory === 'all' || product
-                            .category_id.toString() === this.selectedCategory.toString();
-
+                        const matchShop = product.shop_id.toString() === this.selectedShop.toString();
+                        const matchCategory = this.selectedCategory === 'all' || product.category_id.toString() === this.selectedCategory.toString();
                         const searchLower = this.searchQuery.toLowerCase();
-                        const matchSearch = product.name.toLowerCase().includes(searchLower) ||
-                            (product.sku && product.sku.toLowerCase().includes(searchLower));
-
+                        const matchSearch = product.name.toLowerCase().includes(searchLower) || (product.sku && product.sku.toLowerCase().includes(searchLower));
                         return matchShop && matchCategory && matchSearch;
                     });
                 },
 
                 // ==========================================
-                // 4. CART ACTIONS (จัดการตะกร้าสินค้า)
+                // 4. CART ACTIONS
                 // ==========================================
                 shopChanged() {
-                    // ถ้าพนักงานเปลี่ยนสาขา ให้ล้างตะกร้า ป้องกันการขายผิดร้าน
                     this.cart = [];
                     this.selectedCategory = 'all';
                     this.searchQuery = '';
@@ -490,11 +501,7 @@
                     if (index > -1) {
                         this.cart[index].qty++;
                     } else {
-                        // ก๊อปปี้ข้อมูลสินค้าและเพิ่มฟิลด์ qty
-                        this.cart.push({
-                            ...product,
-                            qty: 1
-                        });
+                        this.cart.push({ ...product, qty: 1 });
                     }
                 },
 
@@ -506,47 +513,59 @@
                 },
 
                 clearCart() {
-                    if (confirm('ยืนยันการล้างตะกร้าสินค้า?')) {
-                        this.cart = [];
-                    }
+                    if (confirm('ยืนยันการล้างตะกร้าสินค้า?')) this.cart = [];
                 },
 
                 // ==========================================
-                // 5. CALCULATORS (คำนวณตัวเลข)
+                // 5. CALCULATORS
                 // ==========================================
-                totalItems() {
-                    return this.cart.reduce((sum, item) => sum + item.qty, 0);
-                },
-
-                cartTotal() {
-                    return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-                },
-
-                netTotal() {
-                    return this.cartTotal() + (parseFloat(this.shippingAmount) || 0) - (parseFloat(this
-                        .discountAmount) || 0);
-                },
-
-                changeAmount() {
-                    // เงินทอน = รับเงินมา - ยอดสุทธิ
-                    return this.receiveAmount - this.netTotal();
-                },
+                totalItems() { return this.cart.reduce((sum, item) => sum + item.qty, 0); },
+                cartTotal() { return this.cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.qty), 0); },
+                netTotal() { return this.cartTotal() + (parseFloat(this.shippingAmount) || 0) - (parseFloat(this.discountAmount) || 0); },
+                changeAmount() { return Math.max(0, (parseFloat(this.receiveAmount) || 0) - this.netTotal()); },
 
                 // ==========================================
-                // 6. CHECKOUT & PRINT (รับเงินและออกบิล)
+                // 6. CHECKOUT & OFFLINE SYNC
                 // ==========================================
-                currentInvoiceNo: '-',
-
                 openCheckout() {
                     if (this.cart.length === 0) return;
                     this.receiveAmount = this.netTotal();
                     this.showCheckoutModal = true;
                 },
 
-                // เปลี่ยนชื่อฟังก์ชันจาก printReceipt เป็น confirmCheckout
+                resetCheckoutState() {
+                    this.showCheckoutModal = false;
+                    this.cart = [];
+                    this.receiveAmount = 0;
+                    this.discountAmount = 0;
+                    this.shippingAmount = 0;
+                    this.paymentMethod = 'cash';
+                    this.selectedCustomer = '';
+                    this.selectedCategory = 'all';
+                    this.searchQuery = '';
+                    this.transactionDate = new Date().toISOString().split('T')[0];
+                },
+
                 async confirmCheckout() {
                     if (this.isProcessing) return;
                     this.isProcessing = true;
+
+                    const payload = {
+                        shop_id: this.selectedShop,
+                        customer_id: this.selectedCustomer,
+                        cart: this.cart,
+                        receive_amount: this.receiveAmount,
+                        payment_method: this.paymentMethod,
+                        discount_amount: this.discountAmount,
+                        shipping_amount: this.shippingAmount,
+                        transaction_date: this.transactionDate
+                    };
+
+                    // ถ้าไม่มีเน็ต โยนเข้าออฟไลน์ทันที
+                    if (!navigator.onLine) {
+                        this.handleOfflineCheckout(payload);
+                        return;
+                    }
 
                     try {
                         const response = await fetch('{{ route('pos.checkout') }}', {
@@ -556,90 +575,116 @@
                                 'Accept': 'application/json',
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
-                            body: JSON.stringify({
-                                shop_id: this.selectedShop,
-                                customer_id: this.selectedCustomer,
-                                cart: this.cart,
-                                receive_amount: this.receiveAmount,
-                                payment_method: this.paymentMethod,
-                                discount_amount: this.discountAmount,
-                                shipping_amount: this.shippingAmount,
-                                transaction_date: this
-                                    .transactionDate // 🚨 ส่งวันที่ขายไปด้วย
-                            })
+                            body: JSON.stringify(payload)
                         });
 
                         const result = await response.json();
 
                         if (response.ok && result.success) {
-
-                            // 🚨 นำเลขบิลจาก Server มาใส่ในตัวแปร
                             this.currentInvoiceNo = result.invoice_no;
-
-                            // 🚨 ใช้ $nextTick เพื่อบอก Alpine ว่า "รอให้หน้าเว็บอัปเดตเลขบิลเสร็จก่อน แล้วค่อยสั่ง Print นะ"
                             this.$nextTick(() => {
                                 window.print();
-
-                                // เคลียร์หน้าจอทั้งหมดกลับสู่จุดเริ่มต้น
-                                this.showCheckoutModal = false;
-                                this.cart = [];
-                                this.receiveAmount = 0;
-                                this.discountAmount = 0;
-                                this.shippingAmount = 0;
-                                this.paymentMethod = 'cash';
-                                this.selectedCustomer = '';
-                                this.selectedShop = ''; // กลับไปหน้าเลือกสาขา
-                                this.selectedCategory = 'all';
-                                this.searchQuery = '';
-                                this.transactionDate = new Date().toISOString().split('T')[
-                                    0];
+                                this.resetCheckoutState();
                                 this.currentInvoiceNo = '-';
                             });
-
                         } else {
                             alert(result.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
                         }
 
                     } catch (error) {
-                        console.error('Error:', error);
-                        alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+                        console.warn('Network issue detected, saving to offline queue...', error);
+                        this.handleOfflineCheckout(payload);
                     } finally {
                         this.isProcessing = false;
                     }
                 },
 
+                handleOfflineCheckout(payload) {
+                    payload.offline_id = 'OFF-' + Date.now();
+                    this.offlineQueue.push(payload);
+                    this.currentInvoiceNo = payload.offline_id;
+
+                    alert('⚠️ ไม่มีอินเทอร์เน็ต: บันทึกบิลลงเครื่องแล้ว (ระบบจะซิงค์อัตโนมัติเมื่อมีเน็ต)');
+
+                    this.$nextTick(() => {
+                        window.print();
+                        this.resetCheckoutState();
+                        this.currentInvoiceNo = '-';
+                    });
+                    this.isProcessing = false;
+                },
+
+                async syncOfflineBills() {
+                    if (this.isSyncing || this.offlineQueue.length === 0) return;
+                    if (!navigator.onLine) {
+                        alert('ยังไม่มีการเชื่อมต่ออินเทอร์เน็ตครับ');
+                        return;
+                    }
+
+                    this.isSyncing = true;
+                    let successCount = 0;
+                    let remainingQueue = [];
+
+                    for (let i = 0; i < this.offlineQueue.length; i++) {
+                        let payload = this.offlineQueue[i];
+                        try {
+                            const response = await fetch('{{ route('pos.checkout') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify(payload)
+                            });
+
+                            const result = await response.json();
+                            if (response.ok && result.success) {
+                                successCount++;
+                            } else {
+                                remainingQueue.push(payload);
+                            }
+                        } catch (error) {
+                            console.error('Sync failed:', error);
+                            remainingQueue.push(payload);
+                        }
+                    }
+
+                    this.offlineQueue = remainingQueue;
+                    this.isSyncing = false;
+
+                    if (successCount > 0) {
+                        alert(`✅ ซิงค์ข้อมูลออฟไลน์สำเร็จจำนวน ${successCount} บิล!`);
+                    } else if (remainingQueue.length > 0) {
+                        alert('⚠️ ซิงค์ข้อมูลไม่สำเร็จบางส่วน กรุณาลองใหม่อีกครั้ง');
+                    }
+                },
+
+                // ==========================================
+                // 7. HELPER FUNCTIONS
+                // ==========================================
+                selectedCustomerName() {
+                    const customer = this.rawCustomers.find(c => c.id.toString() === this.selectedCustomer.toString());
+                    return customer ? customer.name : 'ลูกค้าทั่วไป';
+                },
                 selectedShopName() {
-                    if (!this.selectedShop) return '';
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
-                        .toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
                     return shop ? shop.name : '';
                 },
-
                 selectedShopAddress() {
-                    if (!this.selectedShop) return '';
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
-                        .toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
                     return shop ? shop.address : '';
                 },
-
                 selectedShopPhone() {
-                    if (!this.selectedShop) return '';
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
-                        .toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
                     return shop ? shop.phone : '';
                 },
-
                 showDiscountOnReceipt() {
-                    if (!this.selectedShop) return true;
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
-                        .toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
                     return shop ? !!shop.show_discount_on_receipt : true;
                 },
-
                 showShippingOnReceipt() {
-                    if (!this.selectedShop) return true;
-                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop
-                        .toString());
+                    const shop = this.rawShops.find(s => s.id.toString() === this.selectedShop.toString());
                     return shop ? !!shop.show_shipping_on_receipt : true;
                 }
 

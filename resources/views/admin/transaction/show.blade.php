@@ -166,9 +166,12 @@
             </div>
         </div>
     </div>
-
+    <hr>
     <!-- Area for Thermal Receipt (Print only) -->
-    <x-receipt :transaction="$transaction" />
+    <div class="mt-3">
+        <x-receipt :transaction="$transaction" />
+    </div>
+
 </div>
 
 @endsection
