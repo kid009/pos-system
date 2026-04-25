@@ -12,16 +12,17 @@ class ShippingMethodController extends Controller
     {
         $search = $request->input('search');
 
-        $shippingMethods = ShippingMethod::when($search, function ($q, $search) {
-                return $q->where('name', 'like', "%{$search}%");
-            })
+        $shippingMethods = ShippingMethod::when($search, function ($query, $search) {
+            // ถึงแม้ตอนนี้จะมีแค่เงื่อนไขเดียว แต่การสร้าง Closure $query->where() เผื่อไว้
+            // จะช่วยให้ปลอดภัยหากมีการเพิ่ม orWhere ในอนาคตครับ
+            $query->where('name', 'like', "%{$search}%");
+        })
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString(); // 🚨 ป้องกันบั๊กค่า Search หายเวลาผู้ใช้กดเปลี่ยนหน้าเพจ
 
-        return view('master-data.shipping-method.index', [
-            'shippingMethods' => $shippingMethods,
-            'search' => $search,
-        ]);
+        // ใช้ compact() เพื่อความสะอาดของโค้ด
+        return view('master-data.shipping-method.index', compact('shippingMethods', 'search'));
     }
 
     public function create()
@@ -31,48 +32,43 @@ class ShippingMethodController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
         ]);
 
-        ShippingMethod::create([
-            'name' => $request->name,
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $validated['is_active'] = $request->boolean('is_active');
 
-        return redirect()->route('shipping-methods.index')->with('success', 'เพิ่มบริษัทขนส่งเรียบร้อยแล้ว');
+        // 🚨 นำ executeSafely มาครอบ เพื่อดักจับ Error และทำ DB Transaction
+        return $this->executeSafely(function () use ($validated) {
+            ShippingMethod::create($validated);
+        }, 'เพิ่มบริษัทขนส่งเรียบร้อยแล้ว');
     }
 
-    public function edit(string $id)
+    // 🚨 ใช้ Route Model Binding เพื่อลดการเขียน findOrFail
+    public function edit(ShippingMethod $shippingMethod)
     {
-        $shippingMethod = ShippingMethod::findOrFail($id);
-
-        return view('master-data.shipping-method.edit', [
-            'shippingMethod' => $shippingMethod,
-        ]);
+        return view('master-data.shipping-method.edit', compact('shippingMethod'));
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, ShippingMethod $shippingMethod)
     {
-        $shippingMethod = ShippingMethod::findOrFail($id);
-
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
         ]);
 
-        $shippingMethod->update([
-            'name' => $request->name,
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $validated['is_active'] = $request->boolean('is_active');
 
-        return redirect()->route('shipping-methods.index')->with('success', 'อัปเดตบริษัทขนส่งเรียบร้อยแล้ว');
+        return $this->executeSafely(function () use ($shippingMethod, $validated) {
+            $shippingMethod->update($validated);
+        }, 'อัปเดตบริษัทขนส่งเรียบร้อยแล้ว');
     }
 
-    public function destroy(string $id)
+    public function destroy(ShippingMethod $shippingMethod)
     {
-        $shippingMethod = ShippingMethod::findOrFail($id);
-        $shippingMethod->delete();
-
-        return redirect()->route('shipping-methods.index')->with('success', 'ลบบริษัทขนส่งเรียบร้อยแล้ว');
+        return $this->executeSafely(function () use ($shippingMethod) {
+            // 🚨 เปลี่ยนจากการลบถาวร (delete) เป็น Soft Delete (is_active = false)
+            // เพื่อป้องกันปัญหาประวัติการขาย (บิลเก่าๆ) ที่อ้างอิงขนส่งเจ้านี้เกิด Error หาข้อมูลไม่เจอ
+            $shippingMethod->update(['is_active' => false]);
+        }, 'ระงับการใช้งานบริษัทขนส่งเรียบร้อยแล้ว');
     }
 }
