@@ -63,6 +63,12 @@
                         ข้อมูลธนาคาร
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('shipping-methods.*') ? 'active' : '' }}" href="{{ route('shipping-methods.index') }}">
+                        <span data-feather="truck"></span>
+                        ข้อมูลขนส่ง
+                    </a>
+                </li>
             </ul>
         @endif
 
