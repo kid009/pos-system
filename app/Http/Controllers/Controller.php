@@ -16,7 +16,7 @@ class Controller extends BaseController
     /**
      * ฟังก์ชันครอบ Try-Catch แบบสำเร็จรูป ป้องกันข้อมูลพังและเก็บ Log
      */
-    protected function executeSafely(\Closure $action, $successMessage = 'ทำรายการสำเร็จ')
+    protected function executeSafely(\Closure $action, $successMessage = 'ทำรายการสำเร็จ', $redirectTo = null)
     {
         DB::beginTransaction();
 
@@ -25,6 +25,11 @@ class Controller extends BaseController
             $result = $action();
 
             DB::commit(); // ยืนยันการบันทึก
+
+            // 🚨 ปรับปรุง: ถ้ามีการส่งชื่อ Route มาให้ไปหน้านั้น ถ้าไม่มีให้กลับหน้าเดิม
+            if ($redirectTo) {
+                return redirect()->route($redirectTo)->with('success', $successMessage);
+            }
 
             // ส่งกลับหน้าเดิมพร้อมข้อความสำเร็จ
             return redirect()->back()->with('success', $successMessage);

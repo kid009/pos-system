@@ -75,6 +75,12 @@
                         ช่องทางการขาย
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}" href="{{ route('suppliers.index') }}">
+                        <span data-feather="briefcase"></span>
+                        ซัพพลายเออร์
+                    </a>
+                </li>
             </ul>
         @endif
 

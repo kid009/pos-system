@@ -47,7 +47,7 @@ class BankController extends Controller
         // 🚨 ปรับปรุง 4: นำ executeSafely มาครอบ เพื่อทำ DB Transaction และเก็บ Log อัตโนมัติ
         return $this->executeSafely(function () use ($validated) {
             Bank::create($validated);
-        }, 'เพิ่มธนาคารเรียบร้อยแล้ว');
+        }, 'เพิ่มธนาคารเรียบร้อยแล้ว', 'bank.index');
     }
 
     // 🚨 ปรับปรุง 5: ใช้ Route Model Binding (รับค่าเป็น Type `Bank` เลย ไม่ต้องหา findOrFail เอง)
@@ -70,7 +70,7 @@ class BankController extends Controller
 
         return $this->executeSafely(function () use ($bank, $validated) {
             $bank->update($validated);
-        }, 'อัปเดตธนาคารเรียบร้อยแล้ว');
+        }, 'อัปเดตธนาคารเรียบร้อยแล้ว', 'bank.index');
     }
 
     public function destroy(Bank $bank)

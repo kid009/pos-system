@@ -37,7 +37,7 @@ class SalesChannelController extends Controller
 
         return $this->executeSafely(function () use ($validated) {
             SalesChannel::create($validated);
-        }, 'เพิ่มช่องทางการขายเรียบร้อยแล้ว');
+        }, 'เพิ่มช่องทางการขายเรียบร้อยแล้ว', 'sales-channel.index');
     }
 
     public function edit(SalesChannel $salesChannel)
@@ -55,7 +55,7 @@ class SalesChannelController extends Controller
 
         return $this->executeSafely(function () use ($salesChannel, $validated) {
             $salesChannel->update($validated);
-        }, 'อัปเดตช่องทางการขายเรียบร้อยแล้ว');
+        }, 'อัปเดตช่องทางการขายเรียบร้อยแล้ว', 'sales-channel.index');
     }
 
     public function destroy(SalesChannel $salesChannel)

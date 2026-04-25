@@ -41,7 +41,7 @@ class ShippingMethodController extends Controller
         // 🚨 นำ executeSafely มาครอบ เพื่อดักจับ Error และทำ DB Transaction
         return $this->executeSafely(function () use ($validated) {
             ShippingMethod::create($validated);
-        }, 'เพิ่มบริษัทขนส่งเรียบร้อยแล้ว');
+        }, 'เพิ่มบริษัทขนส่งเรียบร้อยแล้ว', 'shipping-method.index');
     }
 
     // 🚨 ใช้ Route Model Binding เพื่อลดการเขียน findOrFail
@@ -60,7 +60,7 @@ class ShippingMethodController extends Controller
 
         return $this->executeSafely(function () use ($shippingMethod, $validated) {
             $shippingMethod->update($validated);
-        }, 'อัปเดตบริษัทขนส่งเรียบร้อยแล้ว');
+        }, 'อัปเดตบริษัทขนส่งเรียบร้อยแล้ว', 'shipping-method.index');
     }
 
     public function destroy(ShippingMethod $shippingMethod)
