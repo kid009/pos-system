@@ -69,6 +69,12 @@
                         ข้อมูลขนส่ง
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('sales-channels.*') ? 'active' : '' }}" href="{{ route('sales-channels.index') }}">
+                        <span data-feather="shopping-cart"></span>
+                        ช่องทางการขาย
+                    </a>
+                </li>
             </ul>
         @endif
 
