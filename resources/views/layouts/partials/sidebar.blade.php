@@ -57,6 +57,12 @@
                         รายรับ-รายจ่าย
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('banks.*') ? 'active' : '' }}" href="{{ route('banks.index') }}">
+                        <span data-feather="credit-card"></span>
+                        ข้อมูลธนาคาร
+                    </a>
+                </li>
             </ul>
         @endif
 

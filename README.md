@@ -21,7 +21,7 @@ A modern, simple, and efficient Point of Sale (POS) system built with **Laravel 
 ## 🛠️ Tech Stack
 
 -   **Backend:** PHP 8.2+, Laravel 11.x
--   **Frontend:** Laravel Blade, Vanilla CSS, JavaScript (via Vite)
+-   **Frontend:** Laravel Blade, Bootstrap 5 (CDN), JavaScript (via Vite)
 -   **Database:** MySQL / PostgreSQL
 -   **Auth:** Built-in Laravel Authentication with Roles and Status
 

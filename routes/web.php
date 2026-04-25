@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\MasterData\BankController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -39,4 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/transactions/{id}/payment-method', [TransactionController::class, 'updatePaymentMethod'])->name('transactions.update-payment-method');
 
     Route::resource('customers', CustomerController::class);
+
+    //Master Data
+    Route::resource('banks', BankController::class);
 });
