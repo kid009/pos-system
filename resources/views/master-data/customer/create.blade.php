@@ -16,7 +16,7 @@
                 <form action="{{ route('customers.store') }}" method="POST">
                     @csrf
 
-                    @include('admin.customers.partial._form')
+                    @include('master-data.customer.partial._form')
 
                 </form>
             </div>

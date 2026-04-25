@@ -17,7 +17,7 @@
                     @csrf
                     @method('PUT')
 
-                    @include('admin.customers.partial._form')
+                    @include('master-data.customer.partial._form')
 
                 </form>
             </div>

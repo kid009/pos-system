@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\MasterData;
 
+use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Shop;
 use Illuminate\Http\Request;
@@ -23,15 +24,17 @@ class CustomerController extends Controller
 
         // ค้นหาจากชื่อ หรือ เบอร์โทร
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        $customers = $query->latest()->paginate(15)->withQueryString();
+        $customers = $query->latest()
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('admin.customers.index', compact('customers', 'search'));
+        return view('master-data.customer.index', compact('customers', 'search'));
     }
 
     public function create()
@@ -40,20 +43,22 @@ class CustomerController extends Controller
             ? Shop::where('is_active', true)->get()
             : Shop::where('id', Auth::user()->shop_id)->get();
 
-        return view('admin.customers.create', compact('shops'));
+        return view('master-data.customer.create', compact('shops'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'shop_id' => 'required|exists:shops,id',
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
         ]);
 
-        Customer::create($request->all());
+        $validated['is_active'] = $request->boolean('is_active');
 
-        return redirect()->route('customers.index')->with('success', 'เพิ่มข้อมูลลูกค้าสำเร็จ');
+        return $this->executeSafely(function () use ($validated) {
+            Customer::create($validated);
+        }, 'เพิ่มข้อมูลลูกค้าสำเร็จ', 'customer.index');
     }
 
     public function edit(Customer $customer)
@@ -62,25 +67,28 @@ class CustomerController extends Controller
             ? Shop::where('is_active', true)->get()
             : Shop::where('id', Auth::user()->shop_id)->get();
 
-        return view('admin.customers.edit', compact('customer', 'shops'));
+        return view('master-data.customer.edit', compact('customer', 'shops'));
     }
 
     public function update(Request $request, Customer $customer)
     {
-        $request->validate([
+        $validated = $request->validate([
             'shop_id' => 'required|exists:shops,id',
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
         ]);
 
-        $customer->update($request->all());
+        $validated['is_active'] = $request->boolean('is_active');
 
-        return redirect()->route('customers.index')->with('success', 'อัปเดตข้อมูลลูกค้าสำเร็จ');
+        return $this->executeSafely(function () use ($customer, $validated) {
+            $customer->update($validated);
+        }, 'อัปเดตข้อมูลลูกค้าสำเร็จ', 'customer.index');
     }
 
     public function destroy(Customer $customer)
     {
-        $customer->update(['is_active' => false]); // ใช้ Soft Delete หรือเปลี่ยนสถานะแทนการลบทิ้งจริง
-        return redirect()->route('customers.index')->with('success', 'ยกเลิกข้อมูลลูกค้าสำเร็จ');
+        return $this->executeSafely(function () use ($customer) {
+            $customer->update(['is_active' => false]);
+        }, 'ยกเลิกข้อมูลลูกค้าสำเร็จ');
     }
 }
