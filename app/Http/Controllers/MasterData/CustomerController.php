@@ -4,7 +4,6 @@ namespace App\Http\Controllers\MasterData;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,12 +14,7 @@ class CustomerController extends Controller
         $user = Auth::user();
         $search = $request->input('search');
 
-        $query = Customer::with('shop');
-
-        // จัดการสิทธิ์ Admin/Staff
-        if ($user->role !== 'admin') {
-            $query->where('shop_id', $user->shop_id ?? 1);
-        }
+        $query = Customer::query();
 
         // ค้นหาจากชื่อ หรือ เบอร์โทร
         if ($search) {
@@ -39,19 +33,19 @@ class CustomerController extends Controller
 
     public function create()
     {
-        $shops = Auth::user()->role === 'admin'
-            ? Shop::where('is_active', true)->get()
-            : Shop::where('id', Auth::user()->shop_id)->get();
-
-        return view('master-data.customer.create', compact('shops'));
+        return view('master-data.customer.create');
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'shop_id' => 'required|exists:shops,id',
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'branch' => 'nullable|string|max:50',
+            'tax_id' => 'nullable|string|max:13',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
@@ -63,19 +57,19 @@ class CustomerController extends Controller
 
     public function edit(Customer $customer)
     {
-        $shops = Auth::user()->role === 'admin'
-            ? Shop::where('is_active', true)->get()
-            : Shop::where('id', Auth::user()->shop_id)->get();
-
-        return view('master-data.customer.edit', compact('customer', 'shops'));
+        return view('master-data.customer.edit', compact('customer'));
     }
 
     public function update(Request $request, Customer $customer)
     {
         $validated = $request->validate([
-            'shop_id' => 'required|exists:shops,id',
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
+            'branch' => 'nullable|string|max:50',
+            'tax_id' => 'nullable|string|max:13',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');

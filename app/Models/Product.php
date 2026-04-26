@@ -2,43 +2,46 @@
 
 namespace App\Models;
 
-use App\Models\Category;
-use App\Models\Shop;
-use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Product extends Model
 {
-    use HasFactory, Auditable;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'shop_id',
         'category_id',
-        'name',
         'sku',
+        'name',
         'price',
         'cost',
+        'stock_qty',
         'unit',
-        'stock',
-        'image_path',
+        'image',
+        'affiliate_link', // 🌟 อนุญาตให้บันทึกลิงก์
         'is_active',
     ];
 
     protected $casts = [
+        'is_active' => 'boolean',
         'price' => 'decimal:2',
         'cost' => 'decimal:2',
-        'stock' => 'decimal:2',
-        'is_active' => 'boolean',
     ];
 
-    public function shop()
-    {
-        return $this->belongsTo(Shop::class);
-    }
-
+    // ผูกความสัมพันธ์ 1 สินค้า อยู่ใน 1 หมวดหมู่ (Belongs To)
     public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(ProductCategory::class, 'category_id');
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('Master Data: Product');
     }
 }

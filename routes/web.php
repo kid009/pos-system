@@ -5,14 +5,17 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ShopController;
 use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\MasterData\BankController;
 use App\Http\Controllers\MasterData\CustomerController;
+use App\Http\Controllers\MasterData\ProductCategoryController;
+use App\Http\Controllers\MasterData\ProductController as MasterDataProductController;
 use App\Http\Controllers\MasterData\SalesChannelController;
 use App\Http\Controllers\MasterData\ShippingMethodController;
 use App\Http\Controllers\MasterData\SupplierController;
 use App\Http\Controllers\PosController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Report\SystemLogController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -27,8 +30,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
     Route::resource('/shop', ShopController::class);
-
-    Route::resource('/category', CategoryController::class);
 
     Route::resource('/products', ProductController::class);
 
@@ -49,4 +50,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('shipping-methods', ShippingMethodController::class);
     Route::resource('sales-channels', SalesChannelController::class);
     Route::resource('suppliers', SupplierController::class);
+    Route::resource('product-categories', ProductCategoryController::class);
+    Route::resource('master-products', MasterDataProductController::class);
+
+    //Log
+    Route::get('system-logs', [SystemLogController::class, 'index'])->name('system-logs.index');
 });

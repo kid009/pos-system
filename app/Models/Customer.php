@@ -10,17 +10,21 @@ use Spatie\Activitylog\LogOptions; // 🚨 2. นำเข้า Class สำห
 
 class Customer extends Model
 {
-    use HasFactory;
-    use Auditable; // 💡 สถาปัตยกรรมใหม่: ดึง Audit Trail มาใช้บรรทัดเดียวจบ!
+    use HasFactory, Auditable, LogsActivity; // 💡 สถาปัตยกรรมใหม่: ดึง Audit Trail มาใช้บรรทัดเดียวจบ!
 
     protected $fillable = [
-        'shop_id',
         'name',
         'phone',
         'address',
+        'branch',
         'tax_id',
-        'points',
+        'latitude',
+        'longitude',
         'is_active'
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function shop()

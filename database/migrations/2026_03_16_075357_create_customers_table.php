@@ -13,16 +13,14 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shop_id')->constrained('shops')->restrictOnDelete();
-
-            $table->string('name')->comment('ชื่อ-นามสกุล หรือ ชื่อบริษัท');
-            $table->string('phone', 20)->nullable()->comment('เบอร์โทรศัพท์');
-            $table->text('address')->nullable()->comment('ที่อยู่');
-            $table->string('tax_id', 20)->nullable()->comment('เลขประจำตัวผู้เสียภาษี');
-
-            $table->integer('points')->default(0)->comment('แต้มสะสม');
-            $table->boolean('is_active')->default(true)->comment('สถานะใช้งาน');
-
+            $table->string('name')->comment('ชื่อลูกค้า/ชื่อร้าน');
+            $table->string('phone', 20)->nullable();
+            $table->text('address')->nullable();
+            $table->string('branch', 50)->nullable()->comment('สาขา');
+            $table->string('tax_id', 13)->nullable();
+            $table->decimal('latitude', 10, 8)->nullable()->comment('พิกัด GPS');
+            $table->decimal('longitude', 11, 8)->nullable()->comment('พิกัด GPS');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
