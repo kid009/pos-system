@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('product_categories', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->comment('ชื่อสินค้า');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

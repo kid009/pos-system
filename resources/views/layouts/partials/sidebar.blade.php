@@ -35,14 +35,6 @@
                         จัดการร้านค้า
                     </a>
                 </li>
-
-                <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}"
-                        href="{{ route('products.index') }}">
-                        <span data-feather="box"></span>
-                        สินค้า & สต๊อก
-                    </a>
-                </li>
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('product-categories.*') ? 'active' : '' }}"
                         href="{{ route('product-categories.index') }}">
@@ -51,8 +43,8 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('master-products.*') ? 'active' : '' }}"
-                        href="{{ route('master-products.index') }}">
+                    <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}"
+                        href="{{ route('products.index') }}">
                         <span data-feather="package"></span>
                         จัดการสินค้า
                     </a>
@@ -96,6 +88,13 @@
                         href="{{ route('suppliers.index') }}">
                         <span data-feather="briefcase"></span>
                         ซัพพลายเออร์
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('purchases.*') ? 'active' : '' }}"
+                        href="{{ route('purchases.index') }}">
+                        <span data-feather="briefcase"></span>
+                        รับเข้าสินค้า
                     </a>
                 </li>
             </ul>
