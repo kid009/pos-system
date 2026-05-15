@@ -1,87 +1,47 @@
-<!DOCTYPE html>
-<html lang="th">
+<x-guest-layout>
+    <!-- Session Status -->
+    <x-auth-session-status class="mb-4" :status="session('status')" />
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>เข้าสู่ระบบ - POS System</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
 
-    <style>
-        html,
-        body {
-            height: 100%;
-            font-family: 'Prompt', sans-serif;
-        }
+        <!-- Email Address -->
+        <div>
+            <x-input-label for="email" :value="__('Email')" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        </div>
 
-        body {
-            display: flex;
-            align-items: center;
-            padding-top: 40px;
-            padding-bottom: 40px;
-            background-color: #f5f5f5;
-        }
+        <!-- Password -->
+        <div class="mt-4">
+            <x-input-label for="password" :value="__('Password')" />
 
-        .form-signin {
-            max-width: 330px;
-            padding: 15px;
-            margin: auto;
-        }
+            <x-text-input id="password" class="block mt-1 w-full"
+                            type="password"
+                            name="password"
+                            required autocomplete="current-password" />
 
-        .form-signin .form-floating:focus-within {
-            z-index: 2;
-        }
+            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        </div>
 
-        .form-signin input[type="email"] {
-            margin-bottom: -1px;
-            border-bottom-right-radius: 0;
-            border-bottom-left-radius: 0;
-        }
+        <!-- Remember Me -->
+        <div class="block mt-4">
+            <label for="remember_me" class="inline-flex items-center">
+                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
+                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+            </label>
+        </div>
 
-        .form-signin input[type="password"] {
-            margin-bottom: 10px;
-            border-top-left-radius: 0;
-            border-top-right-radius: 0;
-        }
-    </style>
-</head>
-
-<body class="text-center">
-
-    <main class="form-signin w-100 m-auto">
-        <form action="{{ route('login.process') }}" method="POST">
-            @csrf
-            <h1 class="h3 mb-3 fw-normal">ระบบขายหน้าร้าน</h1>
-
-            @if ($errors->any())
-                <div class="alert alert-danger text-start">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
+        <div class="flex items-center justify-end mt-4">
+            @if (Route::has('password.request'))
+                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                    {{ __('Forgot your password?') }}
+                </a>
             @endif
 
-            <div class="form-floating">
-                <input type="email" name="email" class="form-control" id="floatingInput"
-                    placeholder="name@example.com" value="{{ old('email') }}" required autofocus>
-                <label for="floatingInput">อีเมล (Email)</label>
-            </div>
-            <div class="form-floating">
-                <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password"
-                    required>
-                <label for="floatingPassword">รหัสผ่าน (Password)</label>
-            </div>
-
-            <button class="w-100 btn btn-lg btn-primary" type="submit">เข้าสู่ระบบ</button>
-            <p class="mt-5 mb-3 text-muted">&copy; {{date('Y')}} POS System</p>
-        </form>
-    </main>
-
-</body>
-
-</html>
+            <x-primary-button class="ms-3">
+                {{ __('Log in') }}
+            </x-primary-button>
+        </div>
+    </form>
+</x-guest-layout>
