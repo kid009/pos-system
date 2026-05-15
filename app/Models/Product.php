@@ -2,46 +2,55 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasUuids, SoftDeletes, HasFactory;
 
+    // สิ่งที่อนุญาตให้ Insert/Update ผ่าน Request ได้
     protected $fillable = [
         'category_id',
         'sku',
         'name',
+        'description',
         'price',
-        'cost',
-        'stock_qty',
-        'unit',
-        'image',
-        'affiliate_link', // 🌟 อนุญาตให้บันทึกลิงก์
         'is_active',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-        'price' => 'decimal:2',
-        'cost' => 'decimal:2',
+    // สิ่งที่ห้ามส่งออกไปทาง API
+    protected $hidden = [
+        'id', // ซ่อน ID จริง
+        'average_cost',
     ];
 
-    // ผูกความสัมพันธ์ 1 สินค้า อยู่ใน 1 หมวดหมู่ (Belongs To)
-    public function category()
+    protected $casts = [
+        'price' => 'float',
+        'average_cost' => 'float',
+        'stock' => 'integer',
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * บอก Laravel ให้ Generate UUID ลงในคอลัมน์ 'uuid' (ไม่ใช่ 'id')
+     */
+    public function uniqueIds(): array
     {
-        return $this->belongsTo(ProductCategory::class, 'category_id');
+        return ['uuid'];
     }
 
-    public function getActivitylogOptions(): LogOptions
+    // Relationship
+    //การใช้ withDefault() ช่วยป้องกัน "Trying to get property of non-object" หากสินค้านั้นไม่มีหมวดหมู่ ระบบจะคืนค่า Object จำลองกลับมาแทน NULL
+    public function category(): BelongsTo
     {
-        return LogOptions::defaults()
-            ->logFillable()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs()
-            ->useLogName('Master Data: Product');
+        return $this->belongsTo(Category::class, 'category_id', 'id')
+            ->withDefault([
+                'name' => 'Uncategorized',
+                'uuid' => null
+            ]);
     }
 }
