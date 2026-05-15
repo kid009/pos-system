@@ -1,57 +1,20 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\ShopController;
-use App\Http\Controllers\Admin\TransactionController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\MasterData\BankController;
-use App\Http\Controllers\MasterData\CustomerController;
-use App\Http\Controllers\MasterData\ProductCategoryController;
-use App\Http\Controllers\MasterData\ProductController;
-use App\Http\Controllers\MasterData\SalesChannelController;
-use App\Http\Controllers\MasterData\ShippingMethodController;
-use App\Http\Controllers\MasterData\SupplierController;
-use App\Http\Controllers\PosController;
-use App\Http\Controllers\Report\SystemLogController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('guest')->group(function () {
-    Route::get('/', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'processLogin'])->name('login.process');
+Route::get('/', function () {
+    return view('welcome');
 });
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
-
-    Route::resource('/shop', ShopController::class);
-
-    Route::resource('/users', UserController::class);
-
-    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
-
-    Route::post('/pos/checkout', [PosController::class, 'store'])->name('pos.checkout');
-
-    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
-    Route::get('/transactions/{id}', [TransactionController::class, 'show'])->name('transactions.show');
-    Route::patch('/transactions/{id}/payment-method', [TransactionController::class, 'updatePaymentMethod'])->name('transactions.update-payment-method');
-
-    Route::resource('customers', CustomerController::class);
-
-    //Master Data
-    Route::resource('banks', BankController::class);
-    Route::resource('shipping-methods', ShippingMethodController::class);
-    Route::resource('sales-channels', SalesChannelController::class);
-    Route::resource('suppliers', SupplierController::class);
-    Route::resource('product-categories', ProductCategoryController::class);
-    Route::resource('products', ProductController::class);
-
-    //Inventory
-    Route::resource('purchases', \App\Http\Controllers\Inventory\PurchaseController::class)->except(['show', 'edit', 'update']);
-
-    //Log
-    Route::get('system-logs', [SystemLogController::class, 'index'])->name('system-logs.index');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+require __DIR__.'/auth.php';
