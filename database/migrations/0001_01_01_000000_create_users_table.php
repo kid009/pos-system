@@ -12,13 +12,24 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
+            // 1. Identifiers
             $table->id();
+            $table->uuid('uuid')->unique();
+
+            // 2. Personal/Business Data
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
+            // 3. Status/States (วางไว้ตรงนี้ แทนการใช้ after())
+            $table->boolean('is_banned')->default(false);
+            $table->string('banned_reason')->nullable();
+
+            // 4. System Metadata
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes(); // เพิ่ม deleted_at ไว้ล่างสุด
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

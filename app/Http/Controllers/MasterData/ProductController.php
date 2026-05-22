@@ -2,89 +2,154 @@
 
 namespace App\Http\Controllers\MasterData;
 
+use App\Actions\MasterData\Product\CreateProductAction;
+use App\Actions\MasterData\Product\UpdateProductAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MasterData\Product\StoreProductRequest;
+use App\Http\Requests\MasterData\Product\UpdateProductRequest;
+use App\Models\Category;
 use App\Models\Product;
-use App\Models\ProductCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Product::class);
+
         $search = $request->input('search');
 
-        $products = Product::with('category')
-            ->when($search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('sku', 'like', "%{$search}%");
-                });
+        $products = Product::query()
+            ->with('category') // ป้องกัน N+1
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%");
             })
             ->latest()
-            ->paginate(10)
+            ->paginate(15)
             ->withQueryString();
 
-        return view('master-data.product.index', compact('products', 'search'));
+        return view('master-data.product.index', [
+            'search' => '',
+            'products' => $products,
+        ]);
     }
 
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
-        $categories = ProductCategory::where('is_active', true)->get();
-        return view('master-data.product.create', compact('categories'));
-    }
+        Gate::authorize('create', Product::class);
 
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'category_id' => 'nullable|exists:product_categories,id',
-            'sku' => 'required|string|max:50|unique:products,sku',
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'cost' => 'nullable|numeric|min:0',
-            'stock_qty' => 'nullable|integer|min:0',
-            'unit' => 'nullable|string|max:50',
-            'image' => 'nullable|string',
-            'affiliate_link' => 'nullable|string',
+        $categories = Category::where('is_active', true)->get();
+
+        return view('master-data.product.create', [
+            'categories' => $categories,
         ]);
-
-        $validated['is_active'] = $request->boolean('is_active');
-
-        return $this->executeSafely(function () use ($validated) {
-            Product::create($validated);
-        }, 'เพิ่มสินค้าเรียบร้อยแล้ว');
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(StoreProductRequest $request, CreateProductAction $action)
+    {
+        Gate::authorize('create', Product::class);
+
+        try {
+            $action->execute($request->toDTO());
+
+            return redirect()
+                ->route('product.index')
+                ->with('success', 'Product Created Success');
+        } catch (\Throwable $th) {
+            Log::error('Failed to create product', [
+                'message' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', $th->getMessage());
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Product $product)
+    {
+        Gate::authorize('view', $product);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(Product $product)
     {
-        $categories = ProductCategory::where('is_active', true)->get();
-        return view('master-data.product.edit', compact('product', 'categories'));
-    }
+        Gate::authorize('update', $product);
 
-    public function update(Request $request, Product $product)
-    {
-        $validated = $request->validate([
-            'category_id' => 'nullable|exists:product_categories,id',
-            'sku' => 'required|string|max:50|unique:products,sku,' . $product->id,
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'cost' => 'nullable|numeric|min:0',
-            'stock_qty' => 'nullable|integer|min:0',
-            'unit' => 'nullable|string|max:50',
-            'image' => 'nullable|string',
-            'affiliate_link' => 'nullable|string',
+        $categories = Category::where('is_active', true)->get();
+
+        return view('master-data.product.edit', [
+            'product' => $product,
+            'categories' => $categories,
         ]);
-
-        $validated['is_active'] = $request->boolean('is_active');
-
-        return $this->executeSafely(function () use ($product, $validated) {
-            $product->update($validated);
-        }, 'อัปเดตสินค้าเรียบร้อยแล้ว');
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateProductRequest $request, Product $product, UpdateProductAction $action)
+    {
+        Gate::authorize('update', $product);
+
+        try {
+            $action->execute($product, $request->toDTO());
+
+            return redirect()
+                ->route('product.index')
+                ->with('success', 'Product Updated Success');
+        } catch (\Throwable $th) {
+            Log::error('Failed to update product', [
+                'message' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', $th->getMessage());
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Product $product)
     {
-        return $this->executeSafely(function () use ($product) {
-            $product->update(['is_active' => false]);
-        }, 'ระงับการใช้งานสินค้าเรียบร้อยแล้ว');
+        Gate::authorize('delete', $product);
+
+        try {
+            $product->delete();
+
+            return redirect()
+                ->route('product.index')
+                ->with('success', 'Product Deleted Success');
+        } catch (\Throwable $th) {
+            Log::error('Failed to delete product', [
+                'message' => $th->getMessage(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->with('error', $th->getMessage());
+        }
     }
 }

@@ -2,26 +2,35 @@
 
 namespace Database\Factories;
 
-use App\Models\Category;
-use App\Models\Shop;
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProductFactory extends Factory
 {
+    protected $model = Product::class;
+
     public function definition(): array
     {
-        $cost = $this->faker->randomFloat(2, 50, 1000); // ต้นทุน 50 ถึง 1000 บาท
-        $price = $cost + $this->faker->randomFloat(2, 20, 300); // ราคาขายบวกกำไรเพิ่ม 20 ถึง 300 บาท
-
         return [
-            'shop_id' => Shop::factory(),
-            'category_id' => Category::factory(),
-            'name' => $this->faker->words(3, true),
-            'sku' => $this->faker->unique()->bothify('SKU-####-???'),
-            'price' => $price,
-            'cost' => $cost,
-            'unit' => $this->faker->randomElement(['ถัง', 'ขวด', 'แพ็ค', 'ชิ้น', 'กิโลกรัม']),
-            'is_active' => $this->faker->boolean(90), // โอกาส 90% ที่จะเปิดขาย
+            // จำลอง SKU เช่น SKU-8A2F-9012
+            'sku' => $this->faker->unique()->bothify('SKU-####-????'),
+            'name' => ucfirst($this->faker->words(3, true)),
+            'description' => $this->faker->sentence(),
+            // สุ่มราคาขาย 50.00 ถึง 5000.00
+            'price' => $this->faker->randomFloat(2, 50, 5000),
+            'is_active' => true,
         ];
+    }
+
+    /**
+     * Factory State: ใช้เฉพาะตอนเขียน PHPUnit Test ที่ต้องการข้อมูลสต็อกตั้งต้นแบบเร่งด่วน
+     * (ช่วย Bypass ข้อจำกัด Mass Assignment ในฝั่ง Test)
+     */
+    public function withStock(int $qty = 10, float $cost = 100.00): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'stock' => $qty,
+            'average_cost' => $cost,
+        ]);
     }
 }

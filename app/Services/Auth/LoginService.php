@@ -25,7 +25,7 @@ class LoginService
         }
 
         // 2. พยายาม Authenticate
-        if (!Auth::attempt(['email' => $email, 'password' => $password])) {
+        if (! Auth::attempt(['email' => $email, 'password' => $password])) {
             RateLimiter::hit($throttleKey); // บันทึกสถิติว่ารหัสผิด
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'), // รหัสผ่านไม่ถูกต้อง
