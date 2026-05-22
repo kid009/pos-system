@@ -1,115 +1,86 @@
-<div class="row g-3">
-
-    <div class="col-md-6">
-        <label for="sku" class="form-label fw-bold">รหัสสินค้า (SKU) <span class="text-danger">*</span></label>
-        <input type="text" name="sku" id="sku"
-               class="form-control @error('sku') is-invalid @enderror"
-               value="{{ old('sku', $product->sku ?? '') }}" required autofocus>
+<div class="space-y-5">
+    {{-- SKU Field --}}
+    <div>
+        <label for="sku" class="block text-sm font-medium text-gray-700">SKU <span
+                class="text-rose-500">*</span></label>
+        <input type="text" name="sku" id="sku" value="{{ old('sku', $product->sku ?? '') }}"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
         @error('sku')
-            <div class="invalid-feedback">{{ $message }}</div>
+            <span class="text-rose-500 text-xs">{{ $message }}</span>
         @enderror
     </div>
 
-    <div class="col-md-6">
-        <label for="category_id" class="form-label fw-bold">หมวดหมู่</label>
-        <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror">
-            <option value="">-- ไม่มีหมวดหมู่ --</option>
-            @foreach($categories as $category)
-                <option value="{{ $category->id }}" @selected(old('category_id', $product->category_id ?? '') == $category->id)>
+    {{-- Product Name Field --}}
+    <div>
+        <label for="name" class="block text-sm font-medium text-gray-700">Product Name <span
+                class="text-rose-500">*</span></label>
+        <input type="text" name="name" id="name" value="{{ old('name', $product->name ?? '') }}"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        @error('name')
+            <span class="text-rose-500 text-xs">{{ $message }}</span>
+        @enderror
+    </div>
+
+    {{-- Category Field --}}
+    <div>
+        <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
+        <select name="category_id" id="category_id"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="">-- Select Category --</option>
+            @foreach ($categories as $category)
+                <option value="{{ $category->id }}"
+                    {{ old('category_id', $product->category_id ?? '') == $category->id ? 'selected' : '' }}>
                     {{ $category->name }}
                 </option>
             @endforeach
         </select>
         @error('category_id')
-            <div class="invalid-feedback">{{ $message }}</div>
+            <span class="text-rose-500 text-xs">{{ $message }}</span>
         @enderror
     </div>
 
-    <div class="col-12">
-        <label for="name" class="form-label fw-bold">ชื่อสินค้า <span class="text-danger">*</span></label>
-        <input type="text" name="name" id="name"
-               class="form-control @error('name') is-invalid @enderror"
-               value="{{ old('name', $product->name ?? '') }}" required>
-        @error('name')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
-
-    <div class="col-md-4">
-        <label for="price" class="form-label fw-bold">ราคาขาย <span class="text-danger">*</span></label>
-        <div class="input-group">
-            <input type="number" name="price" id="price" step="0.01" min="0"
-                   class="form-control @error('price') is-invalid @enderror"
-                   value="{{ old('price', $product->price ?? '') }}" required>
-            <span class="input-group-text">บาท</span>
+    {{-- Price Field --}}
+    <div>
+        <label for="price" class="block text-sm font-medium text-gray-700">Selling Price <span
+                class="text-rose-500">*</span></label>
+        <div class="relative mt-1 rounded-md shadow-sm">
+            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <span class="text-gray-500 sm:text-sm">฿</span>
+            </div>
+            <input type="number" step="0.01" name="price" id="price"
+                value="{{ old('price', isset($product) ? $product->price : '0.00') }}"
+                class="block w-full rounded-md border-gray-300 pl-7 focus:border-blue-500 focus:ring-blue-500">
         </div>
         @error('price')
-            <div class="invalid-feedback">{{ $message }}</div>
+            <span class="text-rose-500 text-xs">{{ $message }}</span>
         @enderror
     </div>
 
-    <div class="col-md-4">
-        <label for="cost" class="form-label fw-bold">ต้นทุน</label>
-        <div class="input-group">
-            <input type="number" name="cost" id="cost" step="0.01" min="0"
-                   class="form-control @error('cost') is-invalid @enderror"
-                   value="{{ old('cost', $product->cost ?? '') }}">
-            <span class="input-group-text">บาท</span>
-        </div>
-        @error('cost')
-            <div class="invalid-feedback">{{ $message }}</div>
+    {{-- Description Field --}}
+    <div>
+        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+        <textarea name="description" id="description" rows="3"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('description', $product->description ?? '') }}</textarea>
+        @error('description')
+            <span class="text-rose-500 text-xs">{{ $message }}</span>
         @enderror
     </div>
 
-    <div class="col-md-4">
-        <label for="stock_qty" class="form-label fw-bold">จำนวนสต็อก</label>
-        <input type="number" name="stock_qty" id="stock_qty" min="0"
-               class="form-control @error('stock_qty') is-invalid @enderror"
-               value="{{ old('stock_qty', $product->stock_qty ?? 0) }}">
-        @error('stock_qty')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
+    {{-- Active Toggle Switch (Tailwind CSS Only) --}}
+    <div class="pt-2">
+        <label class="relative inline-flex items-center cursor-pointer">
+            {{-- Hidden input ป้องกันกรณีไม่เปิดสวิตช์ จะได้ส่งค่า 0 ไปให้ Backend เสมอ --}}
+            <input type="hidden" name="is_active" value="0">
 
-    <div class="col-md-6">
-        <label for="unit" class="form-label fw-bold">หน่วยนับ</label>
-        <input type="text" name="unit" id="unit"
-               class="form-control @error('unit') is-invalid @enderror"
-               value="{{ old('unit', $product->unit ?? '') }}"
-               placeholder="เช่น ชิ้น, กล่อง, ถุง">
-        @error('unit')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
+            {{-- ค่า Default: ถ้ามีการแก้ให้ดูค่าเดิม ถ้าสร้างใหม่ให้เปิด (true) ไว้ก่อน --}}
+            <input type="checkbox" name="is_active" value="1" class="sr-only peer"
+                {{ old('is_active', $product->is_active ?? true) ? 'checked' : '' }}>
 
-    <div class="col-md-6">
-        <label for="image" class="form-label fw-bold">URL รูปภาพ</label>
-        <input type="text" name="image" id="image"
-               class="form-control @error('image') is-invalid @enderror"
-               value="{{ old('image', $product->image ?? '') }}">
-        @error('image')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
+            <div
+                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500">
+            </div>
 
-    <div class="col-12">
-        <label for="affiliate_link" class="form-label fw-bold">ลิงก์ Affiliate</label>
-        <input type="text" name="affiliate_link" id="affiliate_link"
-               class="form-control @error('affiliate_link') is-invalid @enderror"
-               value="{{ old('affiliate_link', $product->affiliate_link ?? '') }}">
-        @error('affiliate_link')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
+            <span class="ml-3 text-sm font-medium text-gray-900">Active (Visible in POS)</span>
+        </label>
     </div>
-
-    <div class="col-12 mt-4">
-        <div class="form-check form-switch border p-3 rounded bg-light">
-            <input class="form-check-input ms-0 me-2" type="checkbox" role="switch"
-                   name="is_active" id="is_active" value="1"
-                   @checked(old('is_active', isset($product) ? $product->is_active : true))>
-            <label class="form-check-label fw-bold text-dark" for="is_active">เปิดใช้งาน (Active)</label>
-            <div class="form-text text-muted ms-5">สินค้าที่เปิดใช้งานจะแสดงในระบบ POS</div>
-        </div>
-    </div>
-
 </div>

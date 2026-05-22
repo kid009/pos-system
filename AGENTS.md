@@ -1,194 +1,147 @@
-<laravel-boost-guidelines>
-=== foundation rules ===
+# Agent Quick-Start: POS System
 
-# Laravel Boost Guidelines
+Compact reference for OpenCode sessions. If a fact is obvious from filenames or standard Laravel docs, it is omitted.
 
-## Foundational Context
+---
 
-This is a **Laravel POS (Point of Sale) System** built with:
-- PHP 8.3, Laravel Framework v13
-- Laravel Breeze (auth scaffolding with Blade)
-- Tailwind CSS v3 + Vite
-- SQLite (default), MySQL-compatible
-- PHPUnit v12 for testing
+## Stack & Versions
 
-## Domain Overview
+- **Laravel** 13.9, **PHP** ^8.3
+- **Frontend:** Blade + Tailwind CSS v3 + Vite + AlpineJS
+- **Auth:** Laravel Breeze (blade views, session-based)
+- **RBAC:** Spatie Laravel Permission (`roles`, `permissions` tables, `HasRoles` trait)
+- **Activity Log:** Spatie Laravel Activitylog (`LogsActivity` trait, `getActivitylogOptions()`)
+- **DB default:** SQLite (`.env.example`). Production likely MySQL.
+- **Timezone:** `Asia/Bangkok`
+- **Locale:** Thai/English mixed. UI strings and comments often use Thai.
 
-**Core Entities**: Shop, User, Customer, Product, ProductCategory, Supplier, Bank, ShippingMethod, SalesChannel, Purchase, Transaction, TransactionDetail, ExpenseCategory
+---
 
-**Controller Organization**:
-- `app/Http/Controllers/Admin/` - Admin functions
-- `app/Http/Controllers/Auth/` - Authentication
-- `app/Http/Controllers/Inventory/` - Inventory management
-- `app/Http/Controllers/MasterData/` - CRUD for reference data
-- `app/Http/Controllers/Report/` - Reporting
-
-## Skills Activation
-
-This project has domain-specific skills available in `**/skills/**`. You MUST activate the relevant skill whenever you work in that domain.
-
-## Conventions
-
-- Use PHP 8 constructor property promotion
-- Use explicit return types and type hints
-- Use TitleCase for Enum keys
-- Check sibling files for existing patterns before creating new ones
-- Prefer named routes and `route()` helper
-
-=== boost rules ===
-
-# Laravel Boost
-
-## Tools
-
-- Laravel Boost is an MCP server with tools designed specifically for this application. Prefer Boost tools over manual alternatives.
-- Use `database-query` for read-only SQL instead of tinker
-- Use `database-schema` before writing migrations
-- Use `get-absolute-url` before sharing URLs
-- Use `browser-logs` for debugging frontend issues (recent entries only)
-
-## Searching Documentation (IMPORTANT)
-
-- Always use `search-docs` before making code changes. Do not skip this step.
-- Use broad, topic-based queries: `['rate limiting', 'routing']`
-- Use `"quoted phrases"` for exact matches: `"infinite scroll"`
-- Do not add package names to queries (info is already shared)
-
-## Artisan Commands
+## One-Time Setup
 
 ```bash
-# Run single test (recommended after changes)
+composer run setup
+# equivalent to: composer install, .env copy, key:generate, migrate --force,
+#                 npm install --ignore-scripts, npm run build
+```
+
+---
+
+## Daily Dev Commands
+
+```bash
+# Run everything concurrently (server + queue + logs + vite)
+composer run dev
+
+# Run tests (auto-clears config first)
+composer run test
+# Single test
 php artisan test --compact --filter=testName
 
-# Run feature tests in a file
-php artisan test --compact tests/Feature/ExampleTest.php
-
-# Run all tests
-php artisan test --compact
-
-# Route inspection
-php artisan route:list --path=admin
-php artisan route:list --method=POST
-
-# Config inspection
-php artisan config:show app.name
-php artisan config:show database.default
+# Code formatting before commit
+vendor/bin/pint --dirty
+# Do NOT use --test flag with pint in this repo
 ```
 
-## Code Generation
+---
 
-Always use `php artisan make:` with `--no-interaction`:
+## Architecture
 
-```bash
-# Create model with factory and seeder
-php artisan make:model Product --factory --seeder --no-interaction
+**Request pipeline:** `FormRequest → DTO → Action → Controller → Response`
 
-# Create controller
-php artisan make:controller MasterData/ProductController --no-interaction
+**Namespace layout:**
+- `app/Http/Controllers/Admin/` — RBAC, roles, permissions
+- `app/Http/Controllers/MasterData/` — CRUD for reference data (products, categories)
+- `app/Actions/{Domain}/{Entity}/{Action}.php` — business logic
+- `app/DTOs/` — data transfer objects (readonly classes, constructor property promotion)
+- `app/Enums/` — `ModuleTypeEnum`, `ActionTypeEnum`, `RoleTypeEnum`
+- `app/Policies/` — authorization (registered implicitly via auto-discovery)
 
-# Create test (feature tests are default)
-php artisan make:test ProductTest --no-interaction
-php artisan make:test ProductUnitTest --unit --no-interaction
-```
+---
 
-## Tinker
+## Critical Conventions
 
-Use single quotes to prevent shell expansion:
-```bash
-php artisan tinker --execute 'User::count();'
-php artisan tinker --execute 'User::where("active", true)->count();'
-```
+### UUIDs, Not IDs
+- Models use `HasUuids` with `uniqueIds(): ['uuid']`.
+- The `id` column is intentionally **hidden** from serialization (`$hidden = ['id']`).
+- `Product` and `Category` explicitly set `getRouteKeyName()` to return `'uuid'` for route model binding.
+- Always use `uuid` in public APIs, route model binding, and frontend links. Do not expose `id`.
 
-=== php rules ===
+### Soft Deletes
+- `Product` and `User` use `SoftDeletes`.
+- Controllers may offer `restore` and `forceDelete` routes for these models.
 
-# PHP
+### Authorization
+- `AppServiceProvider::boot()` has a global `Gate::before`:
+  1. Banned users (`is_banned = true`) are blocked from **all** abilities.
+  2. `super_admin` role bypasses all permission checks.
+- Core roles (`super_admin`, `owner`) are protected from edit/delete in controllers.
 
-- Always use curly braces for control structures
-- Use PHP 8 constructor property promotion
-- Use explicit return type declarations and type hints
-- Use TitleCase for Enum keys
-- Prefer PHPDoc blocks over inline comments
-- Use array shape type definitions in PHPDoc
+### Query Patterns
+- Eager load relations with `->with('category')` to prevent N+1.
+- Use `->withDefault([...])` on `BelongsTo` so missing relations return a stub instead of `null`.
+- Controllers paginate with `->withQueryString()` so search filters survive page changes.
 
-=== laravel/core rules ===
+### PHP 8.3 Attributes
+- `User` model uses `#[Fillable(...)]` and `#[Hidden(...)]` attributes, but still retains `protected $hidden = ['id']` alongside them.
+- `Product` and `Category` models still use traditional `$fillable` and `$hidden` property declarations.
 
-# Do Things the Laravel Way
+---
 
-## API Development
+## Database & Migrations
 
-- Use Eloquent API Resources for APIs
-- Follow existing API versioning conventions if present
+**Key tables:** `users`, `products`, `categories`, `roles`, `permissions`, Spatie pivot tables.
+- `products`: `category_id` FK, `softDeletes()`, `uuid`.
+- `categories`: `uuid`, no soft deletes.
+- Dynamic permission seeder generates CRUD permissions per module from enums.
+
+**Seeded defaults** (`php artisan db:seed`):
+- Users: `superadmin@mail.com`, `owner@mail.com`, `employee@mail.com` (password: `password`)
+- 5 categories, 23 products (3 uncategorized for edge-case testing).
+
+---
 
 ## Testing
 
-- This project uses **PHPUnit only** (convert Pest tests to PHPUnit)
-- Use factories for model creation in tests
-- Run minimal tests with `--filter` before finalizing
-- Run full suite: `php artisan test --compact`
+- **Framework:** PHPUnit only. Do NOT use Pest.
+- **DB:** `:memory:` SQLite (see `phpunit.xml`).
+- **Base:** `tests/TestCase.php` extends Laravel's base.
+- Run focused tests with `--compact` to reduce noise.
 
-## Frontend
+---
 
-- Vite handles asset building (`vite.config.js`)
-- Tailwind CSS v3 configured in `tailwind.config.js`
-- If Vite manifest errors occur: run `npm run build` or ask user to run `npm run dev`/`composer run dev`
+## Code Quality
 
-=== pint/core rules ===
+- Run `vendor/bin/pint --dirty` before finalizing changes.
+- Do **not** pass `--test` to pint (repo convention).
+- Check sibling files in a directory before creating new ones (follow existing naming/placement).
 
-# Laravel Pint Code Formatter
+---
 
-**Required before finalizing any PHP changes:**
+## OpenCode / Boost Integration
 
-```bash
-vendor/bin/pint --dirty
-```
+- `opencode.json` enables `laravel-boost` MCP locally.
+- `.opencode/skills/` contains:
+  - `laravel-best-practices` — full CRUD pipeline, query optimization, testing checklist (Thai/English)
+  - `web-colors` — POS-tailwind color palette, badge/status classes
+- `boost.json` registers `laravel-best-practices` and `tailwindcss-development` skills.
 
-Do not use `--test` flag - just run the fixer.
+When working on models, controllers, migrations, routes, or CRUD features, the `laravel-best-practices` skill is the primary source of truth for repo conventions.
 
-=== composer rules ===
+---
 
-# Composer Scripts
+## Route Structure
 
-```bash
-# Full project setup (run once)
-composer run setup
+- `routes/web.php` — app routes (dashboard, profile, admin roles, master data)
+- `routes/auth.php` — Breeze auth routes (login, register, password reset, logout)
+- Named routes preferred. Use `route('name')` helper in controllers and views.
 
-# Development server (runs Laravel, queue, logs, Vite concurrently)
-composer run dev
+---
 
-# Run tests with config clear
-composer run test
-```
+## Views
 
-=== project-specific ===
-
-# POS System Notes
-
-## Database
-
-- Default: SQLite (`DB_CONNECTION=sqlite`)
-- Testing: SQLite in-memory (`:memory:`)
-- Migrations cover: users, shops, customers, products, categories, suppliers, banks, shipping methods, sales channels, purchases, transactions, expense categories
-
-## Authentication
-
-- Laravel Breeze provides auth scaffolding
-- Routes in `routes/auth.php`
-- Role-based access with `role` column on users table
-- Shop-scoped multi-tenancy with `shop_id` on users table
-
-## View Organization
-
-- `resources/views/admin/` - Admin dashboards and user management
-- `resources/views/master-data/` - CRUD views for reference data
-- `resources/views/pos/` - Point of sale interface
-- `resources/views/shop/` - Shop management
-- `resources/views/reports/` - Reporting views
-
-## Key Conventions
-
-- Master data controllers follow CRUD patterns
-- Partials stored in `*/partials/` subdirectories
-- Activity logging enabled (spatie/laravel-activitylog)
-- Always check for existing components before creating new ones
-
-</laravel-boost-guidelines>
+- `resources/views/layouts/` — base layouts
+- `resources/views/admin/` — role/permission management
+- `resources/views/master-data/` — products, categories
+- Partials go in `*/partials/` subdirectories.
+- Reuse existing Blade components before creating new ones.

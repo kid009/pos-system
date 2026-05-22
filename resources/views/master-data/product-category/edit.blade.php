@@ -1,34 +1,50 @@
-@extends('layouts.app')
+<x-admin-layout>
+    <div class="space-y-6">
+        {{-- Header --}}
+        <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+            <h1 class="text-2xl font-bold text-gray-900">
+                Edit Product Category: <span class="text-blue-600">{{ $productCategory->name }}</span>
+            </h1>
+            <a href="{{ route('product-categories.index') }}"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back
+            </a>
+        </div>
 
-@section('title', 'แก้ไขหมวดหมู่สินค้า')
-
-@section('content')
-<div class="pt-3 pb-2 mb-3">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center border-bottom pb-2 mb-4">
-        <h1 class="h2 mb-0">แก้ไขหมวดหมู่สินค้า: <span class="text-primary">{{ $productCategory->name }}</span></h1>
-        <a href="{{ route('product-categories.index') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
-            <span data-feather="arrow-left"></span> กลับหน้ารายการ
-        </a>
-    </div>
-
-    <div class="row justify-content-center">
-        <div class="col-lg-6 col-xl-5">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-4">
-                    <form action="{{ route('product-categories.update', $productCategory->id) }}" method="POST">
+        {{-- Form Card --}}
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-lg shadow border border-gray-200">
+                <div class="p-6">
+                    <form action="{{ route('product-categories.update', $productCategory->uuid) }}" method="POST">
                         @csrf
                         @method('PUT')
 
-                        @include('master-data.product-category.partials._form', ['productCategory' => $productCategory])
+                        @include('master-data.product-category.partials._form', [
+                            'productCategory' => $productCategory,
+                        ])
 
-                        <hr class="my-4">
+                        <hr class="my-6 border-gray-200">
 
-                        <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted">อัปเดต: {{ $productCategory->updated_at->format('d/m/Y H:i') }}</small>
-                            <div class="d-flex gap-2">
-                                <a href="{{ route('product-categories.index') }}" class="btn btn-light border">ยกเลิก</a>
-                                <button type="submit" class="btn btn-primary px-4 d-flex align-items-center gap-1">
-                                    <span data-feather="save"></span> อัปเดตข้อมูล
+                        <div class="flex items-center justify-between">
+                            <p class="text-sm text-gray-500">
+                                update: {{ $productCategory->updated_at->format('d/m/Y H:i') }}
+                            </p>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ route('product-categories.index') }}"
+                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                    cancel
+                                </a>
+                                <button type="submit"
+                                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    update
                                 </button>
                             </div>
                         </div>
@@ -37,5 +53,4 @@
             </div>
         </div>
     </div>
-</div>
-@endsection
+</x-admin-layout>
