@@ -29,6 +29,10 @@
                 class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md font-medium">
                 Product Manage
             </a>
+            <a href="{{ route('warehouses.index') }}"
+                class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md font-medium">
+                Warehouse Manage
+            </a>
             <a href="{{ route('inventory.inbound.create') }}"
                 class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md font-medium">
                 Inventory Manage
