@@ -56,10 +56,10 @@ class StockMovement extends Model
     }
 
     /**
-     * Failsafe Architectural Layer: Intercept updating/deleting to enforce immutability.
+     * Intercept updating/deleting events to strictly enforce append-only immutability.
      */
     #[Override]
-    public static function booted()
+    public static function booted(): void
     {
         static::updating(function ($movement) {
             throw new \Exception("Architectural Violation: Stock movements are an unalterable ledger and cannot be updated.");
@@ -71,18 +71,14 @@ class StockMovement extends Model
     }
 
     /**
-     * ตั้งค่าการบันทึก Activity Log ระดับ Enterprise
+     * Configure Enterprise-Grade Activity Logging parameters.
      */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            // บอกให้ระบบเก็บประวัติการเปลี่ยนแปลงเฉพาะฟิลด์ที่อยู่ใน $fillable
+            // Track all assignable operational transaction states
             ->logFillable()
-            // สั่งให้เก็บเฉพาะฟิลด์ที่มีการเปลี่ยนแปลงจริงๆ เท่านั้น (ป้องกันล็อกบวมจากค่าที่เหมือนเดิม)
-            ->logOnlyDirty()
-            // เปิดโหมดจับคู่ประวัติ บันทึกทั้งค่าเก่า (Before) และค่าใหม่ (After) ตอนกดอัปเดต
-            ->dontSubmitEmptyLogs()
-            // กำหนดชื่อ Log Description สื่อสารชัดเจนภาษาอังกฤษ
-            ->useLogName('product');
+            // Isolate namespace to prevent collision with master product logging
+            ->useLogName('inventory_ledger');
     }
 }

@@ -8,4 +8,5 @@ enum ModuleTypeEnum: string
     case PRODUCT = 'product';
     case ROLES = 'roles';
     case PERMISSIONS = 'permissions';
+    case INVENTORY = 'inventory';
 }
