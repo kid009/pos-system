@@ -1,29 +1,25 @@
 <?php
 
-use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return auth()->check()
-        ? redirect()->route('dashboard')
-        : redirect()->route('login');
+Route::middleware('guest')->group(function () {
+    Route::get('/', [AuthController::class, 'showLogin'])->name('auth.show-login');
+    Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 });
-
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
-    // category
-    Route::resource('category', CategoryController::class);
-    // Product
-    Route::resource('product', ProductController::class);
+    Route::resource('product-categories', ProductCategoryController::class)->except(['show']);
+    Route::resource('products', ProductController::class)->except(['show']);
 });
 
-require __DIR__.'/auth.php';
+Route::get('/tailwind-demo', function () {
+    return view('tailwind-demo');
+})->name('tailwind-demo');

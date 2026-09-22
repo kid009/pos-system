@@ -3,62 +3,50 @@
 namespace App\Models;
 
 use Database\Factories\ProductFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Override;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Traits\LogsActivity;
 
+#[Fillable(['product_category_id', 'name', 'description', 'price', 'image', 'link_affiliate', 'is_active'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
-    use HasFactory, LogsActivity;
+    use HasFactory;
 
-    protected $fillable = [
-        'category_id',
-        'name',
-        'slug',
-        'brand',
-        'model_number',
-        'description',
-        'image_path',
-        'is_active',
-    ];
-
-    protected $attributes = [
-        'is_active' => true,
-    ];
-
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'price' => 'decimal:2',
         ];
     }
 
+    /**
+     * Get the category that owns the product.
+     */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(ProductCategory::class, 'product_category_id');
     }
 
-    public function affiliateLinks(): HasMany
+    /**
+     * Scope a query to filter products.
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
     {
-        return $this->hasMany(ProductAffiliateLink::class);
-    }
-
-    public function prices(): HasMany
-    {
-        return $this->hasMany(ProductPrice::class)->orderByDesc('started_at');
-    }
-
-    #[Override]
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logFillable()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+        return $query
+            ->when($filters['search'] ?? null, function (Builder $query, string $search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->when(isset($filters['status']) && $filters['status'] !== '', function (Builder $query) use ($filters) {
+                $query->where('is_active', (bool) $filters['status']);
+            });
     }
 }

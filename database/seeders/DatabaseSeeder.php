@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -16,25 +17,29 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. สร้างผู้ดูแลระบบส่วนกลาง (Administrator)
-        // คุมความปลอดภัยรหัสผ่านผ่านระบบสิ่งแวดล้อมเพื่อป้องกันรหัสหลุดขึ้นคลังโค้ด (Git Repository)
-        User::firstOrCreate(
-            ['email' => 'admin@mail.com'], // ตรวจสอบไม่ให้สร้างแอดมินซ้ำซ้อนซากถ้ามีอยู่แล้ว
+        $this->createOrUpdateUser('Admin User', 'admin@mail.com', UserRole::ADMIN);
+        $this->createOrUpdateUser('Manager User', 'manager@mail.com', UserRole::MANAGER);
+        $this->createOrUpdateUser('Cashier User', 'cashier@mail.com', UserRole::CASHIER);
+        $this->createOrUpdateUser('Default User', 'user@mail.com', UserRole::CASHIER);
+
+        $this->call([
+            ProductCategorySeeder::class,
+            ProductSeeder::class,
+        ]);
+    }
+
+    /**
+     * Create or update a seeded test user.
+     */
+    private function createOrUpdateUser(string $name, string $email, ?UserRole $role = null): void
+    {
+        User::updateOrCreate(
+            ['email' => $email],
             [
-                'name' => 'Administrator',
+                'name' => $name,
                 'password' => Hash::make('password'),
-                'is_active' => true,
-                'email_verified_at' => now(),
+                'role' => $role,
             ]
         );
-
-        // 2. สั่งเรียกใช้งานระบบ Seeder ย่อยตามลำดับสถาปัตยกรรมความสัมพันธ์ของข้อมูล (Data Dependency)
-        // แก้ไขจุดที่พี่กั๊กเขียนเป็น Class ลอย ๆ ให้ทำงานผ่านคำสั่งหลักของ Laravel
-        $this->call([
-            CategorySeeder::class,
-            // ในอนาคตเมื่อพี่กั๊กขึ้นระบบขายหน้าร้าน POS พี่สามารถซอยย่อยไฟล์ต่อท้ายตรงนี้ได้เลยครับ:
-            // ProductSeeder::class,
-            // InventoryLedgerSeeder::class,
-        ]);
     }
 }
